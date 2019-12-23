@@ -1,13 +1,16 @@
 import os
 
-import matplotlib.pyplot as plt
 from dotenv import load_dotenv
+from torchvision.transforms import ToTensor
+
+from models.gan.GAN import GAN
+from models.trainer import train
 
 from dataset.UTKFaceDataset import UTKFaceDataset
 
 if __name__ == '__main__':
     load_dotenv()
-    dataset = UTKFaceDataset(os.environ['DATASET_PATH'])
+    dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=ToTensor())
 
-    plt.imshow(dataset[0])
-    plt.show()
+    model = GAN()
+    train(model, dataset)
