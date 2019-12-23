@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 torch = "*"
 torchvision = "*"
+python-dotenv = "*"
+matplotlib = "==3.0.0"
 
 [requires]
 python_version = "3.7"
