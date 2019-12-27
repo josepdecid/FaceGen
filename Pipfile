@@ -12,6 +12,7 @@ torchvision = "*"
 python-dotenv = "*"
 matplotlib = "==3.0.0"
 tqdm = "*"
+torchsummary = "*"
 
 [requires]
 python_version = "3.7"

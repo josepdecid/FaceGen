@@ -3,6 +3,7 @@ import os
 from torch import nn, optim
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchsummary import summary
 from tqdm import tqdm
 
 from constants.train_constants import *
@@ -16,14 +17,17 @@ class Trainer:
         self.G = G
         self.D = D
 
+        # summary(G, input_size=(Z_SIZE,))
+        summary(D, input_size=(3, 200, 200))
+
         self.dataset = dataset
         self.loader = DataLoader(dataset=dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE_TRAIN)
 
         self.writer = SummaryWriter(log_dir=os.environ['LOG_DIR'])
 
         self.criterion = nn.BCELoss()
-        self.optim_G: optim.Adam = None
-        self.optim_D: optim.Adam = None
+        self.optim_G: optim.Adam = optim.Adam(params=self.G.parameters())
+        self.optim_D: optim.Adam = optim.Adam(params=self.D.parameters())
 
     def train(self):
         # Send both networks to the corresponding device (GPU or CPU)
@@ -85,6 +89,7 @@ class Trainer:
 
         self.G.zero_grad()
 
+        labels.fill_(value=1)
         pred = self.D(fake_images).view(-1)
         err_G = self.criterion(pred, labels)
         err_G.backward()
