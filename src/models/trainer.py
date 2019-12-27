@@ -73,7 +73,7 @@ class Trainer:
         err_real_D.backward()
 
         labels.fill_(value=0)
-        noise = torch.randn(b_size, Z_SIZE, 1, 1, device=DEVICE)
+        noise = torch.randn(size=(b_size, Z_SIZE), device=DEVICE)
         fake_images = self.G(noise)
         pred = self.D(fake_images.detach()).view(-1)
         err_fake_D = self.criterion(pred, labels)

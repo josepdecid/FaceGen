@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 from torch.nn import functional as F
 
@@ -8,41 +9,29 @@ class Generator(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv_t1 = nn.ConvTranspose2d(in_channels=Z_SIZE, out_channels=512,
-                                          kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn1 = nn.BatchNorm2d(512)
+        self.linear = nn.Linear(in_features=Z_SIZE, out_features=512 * 5 * 5)
 
-        self.conv_t2 = nn.ConvTranspose2d(in_channels=512, out_channels=256,
-                                          kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn2 = nn.BatchNorm2d(256)
+        self.conv_layers = [
+            nn.ConvTranspose2d(in_channels=512, out_channels=256,
+                               kernel_size=4, stride=5, output_padding=1),
+            nn.ConvTranspose2d(in_channels=256, out_channels=128,
+                               kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(in_channels=128, out_channels=64,
+                               kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(in_channels=64, out_channels=3,
+                               kernel_size=4, stride=2, padding=1)
+        ]
 
-        self.conv_t3 = nn.ConvTranspose2d(in_channels=256, out_channels=128,
-                                          kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn3 = nn.BatchNorm2d(128)
-
-        self.conv_t4 = nn.ConvTranspose2d(in_channels=128, out_channels=64,
-                                          kernel_size=4, stride=1, padding=0, bias=False)
-        self.bn4 = nn.BatchNorm2d(64)
-
-        self.conv_t5 = nn.ConvTranspose2d(in_channels=64, out_channels=3,
-                                          kernel_size=4, stride=1, padding=0, bias=False)
+        self.batch_norms = [nn.BatchNorm2d(i ** 2) for i in range(8, 6, -1)]
 
     def forward(self, x):
-        x = self.conv_t1(x)
-        x = self.bn1(x)
-        x = F.relu(x)
+        x = self.linear(x)
+        x = x.view(-1, 512, 5, 5)
 
-        x = self.conv_t2(x)
-        x = self.bn2(x)
-        x = F.relu(x)
+        for i in range(len(self.conv_layers) - 1):
+            print(x.size())
+            x = self.conv_layers[i](x)
+            x = F.relu(x)
 
-        x = self.conv_t3(x)
-        x = self.bn3(x)
-        x = F.relu(x)
-
-        x = self.conv_t4(x)
-        x = self.bn4(x)
-        x = F.relu(x)
-
-        x = self.conv_t5(x)
-        return F.tanh(x)
+        x = self.conv_layers[-1](x)
+        return torch.tanh(x)
