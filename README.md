@@ -18,7 +18,7 @@ to update, install or manage them for any purpose in a few simple commands.
 
 Once Pipenv is installed, run in this folder the following command:
 
-```python
+```shell
 pipenv --python 3.7
 pipenv install
 ```
