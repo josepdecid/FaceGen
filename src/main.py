@@ -47,9 +47,9 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GAN for Face Generation.')
     parser.add_argument('--generate', nargs=2, required=False,
-                        help='Whether to generate a sample instead of training the model.'
-                             'Need to specify the model file name located in folder `/checkpoints`.'
-                             'Can also specify the number of samples to generate')
+                        help='Whether to generate a sample instead of training the model. '
+                             'Need to specify the model file name located in folder `/checkpoints`. '
+                             'You also need to specify the number of samples to generate')
     parser.add_argument('--seed', type=int, required=False,
                         help='Set manual random seed for reproducibility')
     parser.add_argument('--cuda', action='store_true', default=False,
