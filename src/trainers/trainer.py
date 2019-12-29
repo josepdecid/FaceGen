@@ -38,7 +38,7 @@ class Trainer(ABC):
                                                 position=0, leave=True,
                                                 desc=f'Epoch {epoch_idx:4}')):
             self._run_batch(images.to(DEVICE),
-                            iteration=epoch_idx * BATCH_SIZE + batch_idx)
+                            iteration=epoch_idx * num_batches + batch_idx)
 
     @abstractmethod
     def _run_batch(self, images: torch.Tensor, iteration: int) -> None:
