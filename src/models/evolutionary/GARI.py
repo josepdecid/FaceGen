@@ -220,6 +220,6 @@ def show_indivs(individuals, im_shape):
             else:
                 curr_img = chromosome2img(individuals[curr_ind, :], im_shape)
                 axis1[idx_r, idx_c].imshow(curr_img)
-                print(curr_img.min(), curr_img.max())
+                # print(curr_img.min(), curr_img.max())
                 curr_ind = curr_ind + 1
     matplotlib.pyplot.show()
