@@ -9,9 +9,11 @@ from torchvision import transforms
 
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
+from models.evolutionary.face_classifier import FaceClassifier
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
 from sampler import generate_samples
+from trainers.ga_trainer import GATrainer
 from trainers.gan_trainer import GANTrainer
 from trainers.vae_trainer import VAETrainer
 
@@ -39,7 +41,10 @@ def main(args):
         ])
         dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
-        if args.model == 'GAN':
+        if args.model == 'GA':
+            model = FaceClassifier()
+            trainer = GATrainer(model, dataset, log_tag=log_tag)
+        elif args.model == 'GAN':
             G = Generator()
             D = Discriminator()
             trainer = GANTrainer(G=G, D=D, dataset=dataset, log_tag=log_tag)
@@ -55,7 +60,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GAN for Face Generation.')
-    parser.add_argument('model', type=str, choices=['VAE', 'GAN'],
+    parser.add_argument('model', type=str, choices=['GA', 'VAE', 'GAN'],
                         help='Choose model between VAE and GAN')
     parser.add_argument('--generate', nargs=2, required=False,
                         help='Whether to generate a sample instead of training the model. '
