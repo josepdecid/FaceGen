@@ -27,7 +27,7 @@ class VAE(nn.Module):
         )
 
         self.linear_encoder = nn.Sequential(
-            nn.Linear(8 * 8 * 16, 512),
+            nn.Linear(16 * 50 * 50, 512),
             nn.BatchNorm2d(512),
             nn.ReLU()
         )
@@ -65,7 +65,7 @@ class VAE(nn.Module):
 
     def __encode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         x = self.conv_encoder(x)
-        x = x.view(-1, 8 * 8 * 16)
+        x = x.view(-1, 16 * 50 * 50)
         x = self.linear_encoder(x)
         return self.mu_encoder(x), self.log_var_encoder(x)
 

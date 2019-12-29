@@ -21,7 +21,9 @@ class Trainer(ABC):
         self._init_model()
 
         for epoch_idx in range(EPOCHS):
-            self.writer.add_image(f'Epoch {epoch_idx} generation', img_tensor=self.dataset[0], global_step=epoch_idx)
+            self.writer.add_image(f'Epoch {epoch_idx} generation',
+                                  img_tensor=self._get_result_sample(),
+                                  global_step=epoch_idx)
             self._run_epoch(epoch_idx=epoch_idx)
 
         self.writer.close()
@@ -37,6 +39,10 @@ class Trainer(ABC):
 
     @abstractmethod
     def _run_batch(self, images: torch.Tensor, iteration: int) -> None:
+        pass
+
+    @abstractmethod
+    def _get_result_sample(self):
         pass
 
     @abstractmethod

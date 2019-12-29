@@ -15,8 +15,8 @@ class GANTrainer(Trainer):
         self.D = D
 
         self.criterion = nn.BCELoss()
-        self.optim_G: optim.Adam = optim.Adam(params=self.G.parameters())
-        self.optim_D: optim.Adam = optim.Adam(params=self.D.parameters())
+        self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.0002, betas=(0.5, 0.999))
 
     def _run_batch(self, images, iteration):
         b_size = images.size(0)
@@ -71,6 +71,14 @@ class GANTrainer(Trainer):
         # Initialize weights of both networks
         self.G.apply(GANTrainer.__weights_init)
         self.D.apply(GANTrainer.__weights_init)
+
+    def _get_result_sample(self):
+        self.G.eval()
+        with torch.no_grad():
+            noise = torch.randn(size=(1, Z_SIZE), device=DEVICE)
+            fake_image = self.G(noise).squeeze()
+        self.G.train()
+        return fake_image
 
     @staticmethod
     def __weights_init(m):
