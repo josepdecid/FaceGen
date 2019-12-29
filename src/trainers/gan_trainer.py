@@ -56,8 +56,8 @@ class GANTrainer(Trainer):
 
         self.optim_G.step()
 
-        self.writer.add_scalar('Generator Loss', err_G, iteration, tag=self.log_tag)
-        self.writer.add_scalar('Discriminator Loss', err_D, iteration, tag=self.log_tag)
+        self.writer.add_scalar('Generator Loss', err_G, iteration)  # , tag=self.log_tag)
+        self.writer.add_scalar('Discriminator Loss', err_D, iteration)  # , tag=self.log_tag)
 
     def _init_model(self):
         # Send both networks to the corresponding device (GPU or CPU)

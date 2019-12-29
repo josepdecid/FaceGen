@@ -29,10 +29,11 @@ class Trainer(ABC):
     def _run_epoch(self, epoch_idx: int):
         num_batches = len(self.loader)
         for batch_idx, images in enumerate(tqdm(self.loader,
-                                                total=num_batches, ncols=150,
+                                                total=num_batches, ncols=100,
                                                 position=0, leave=True,
                                                 desc=f'Epoch {epoch_idx:4}')):
-            self._run_batch(images, iteration=epoch_idx * BATCH_SIZE + batch_idx)
+            self._run_batch(images.to(DEVICE),
+                            iteration=epoch_idx * BATCH_SIZE + batch_idx)
 
     @abstractmethod
     def _run_batch(self, images: torch.Tensor, iteration: int) -> None:
