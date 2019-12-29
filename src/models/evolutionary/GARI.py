@@ -5,6 +5,7 @@ import random
 
 import matplotlib.pyplot
 import numpy
+from torchvision.transforms import ToTensor
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).
@@ -68,20 +69,24 @@ def chromosome2img(chromosome, img_shape):
     return img_arr
 
 
-def fitness_fun(target_chrom, indiv_chrom):
+def fitness_fun(indiv_chrom, model):
     """
     Calculating the fitness of a single solution.
-    The fitness is basicly calculated using the sum of absolute difference 
+    The fitness is basically calculated using the sum of absolute difference
     between genes values in the original and reproduced chromosomes.
     """
-    # quality = numpy.square(target_chrom - indiv_chrom).mean()
+    fitness = model(ToTensor()(chromosome2img(indiv_chrom, (200, 200, 3))))
+    return fitness
+
+
+def fitness_fun_difference(target_chrom, indiv_chrom):
+    """
+    Calculating the fitness of a single solution.
+    The fitness is basicly calculated using the sum of absolute difference
+    between genes values in the original and reproduced chromosomes.
+    """
     quality = numpy.mean(numpy.abs(target_chrom - indiv_chrom))
-    """
-    Negating the fitness value to make it increasing rather than decreasing.
-    Actually the next line adds nothing but it exists just because it is known 
-    that the fitness values are increasing not decreasing.
-    """
-    quality = numpy.sum(target_chrom) - quality
+    quality = -quality
     return quality
 
 
