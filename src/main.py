@@ -31,7 +31,9 @@ def main(args):
         random.seed(manual_seed)
         torch.manual_seed(manual_seed)
 
-        log_tag = ' '.join(str(datetime.now()).split()) + f'_{manual_seed}'
+        log_tag = ('-'.join(str(datetime.now()).split()) + f'_{manual_seed}').replace(':', '-')
+        if not os.path.exists(os.environ['CKPT_DIR']):
+            os.mkdir(os.environ['CKPT_DIR'])
 
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
