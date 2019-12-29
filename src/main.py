@@ -1,16 +1,19 @@
 import argparse
 import os
 import random
+from datetime import datetime
 
 import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
 from dataset.UTKFaceDataset import UTKFaceDataset
+from models.autoencoder.vae import VAE
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
-from models.sampler import generate_samples
-from models.trainer import Trainer
+from sampler import generate_samples
+from trainers.gan_trainer import GANTrainer
+from trainers.vae_trainer import VAETrainer
 
 
 def main(args):
@@ -24,6 +27,8 @@ def main(args):
         random.seed(manual_seed)
         torch.manual_seed(manual_seed)
 
+        log_tag = ' '.join(str(datetime.now()).split()) + f'_{manual_seed}'
+
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomPerspective(),
@@ -34,10 +39,14 @@ def main(args):
         ])
         dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
-        G = Generator()
-        D = Discriminator()
+        if args.model == 'GAN':
+            G = Generator()
+            D = Discriminator()
+            trainer = GANTrainer(G=G, D=D, dataset=dataset, log_tag=log_tag)
+        else:
+            model = VAE()
+            trainer = VAETrainer(model=model, dataset=dataset, log_tag=log_tag)
 
-        trainer = Trainer(G=G, D=D, dataset=dataset)
         trainer.train()
     else:
         generate_samples(model_path=args.generate[0],
@@ -46,6 +55,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GAN for Face Generation.')
+    parser.add_argument('model', type=str, choices=['VAE', 'GAN'],
+                        help='Choose model between VAE and GAN')
     parser.add_argument('--generate', nargs=2, required=False,
                         help='Whether to generate a sample instead of training the model. '
                              'Need to specify the model file name located in folder `/checkpoints`. '
