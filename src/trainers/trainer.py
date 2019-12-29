@@ -45,6 +45,8 @@ class Trainer(ABC):
                 self._run_batch(data.to(DEVICE), torch.zeros(),
                                 iteration=epoch_idx * num_batches + batch_idx)
 
+        self._save_checkpoint(epoch=epoch_idx)
+
     @abstractmethod
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor, iteration: int) -> None:
         pass
@@ -55,4 +57,8 @@ class Trainer(ABC):
 
     @abstractmethod
     def _init_model(self):
+        pass
+
+    @abstractmethod
+    def _save_checkpoint(self, epoch: int):
         pass

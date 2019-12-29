@@ -1,3 +1,4 @@
+import os
 from torch import nn, optim
 
 from constants.train_constants import *
@@ -35,6 +36,10 @@ class GATrainer(Trainer):
 
         # Set network in train mode
         self.model.train()
+
+    def _save_checkpoint(self, epoch: int):
+        save_path = os.path.join(os.environ['CKPT_DIR'], f'{self.log_tag}_{epoch}.pt')
+        torch.save(self.model.state_dict(), save_path)
 
     def _get_result_sample(self):
         return None

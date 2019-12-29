@@ -53,9 +53,10 @@ def main(args):
                 trainer = GATrainer(model, fnf_dataset, log_tag=log_tag)
                 trainer.train()
             else:
-                model_weights = torch.load(args.pretrained)
+                path = os.path.join(os.environ['CKPT_DIR'], f'{args.pretrained}.pt')
+                model_weights = torch.load(path)
                 model.load_state_dict(model_weights)
-
+            model.eval()
             run_genetic_algorithm(model)
         elif args.model == 'GAN':
             G = Generator()
