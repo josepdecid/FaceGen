@@ -4,8 +4,8 @@ import numpy
 import itertools
 import matplotlib.pyplot as plt
 from models.evolutionary import GARI
-from skimage.color import rgb2gray
 from skimage import io
+from skimage.filters import gaussian
 
 from models.evolutionary.face_classifier import FaceClassifier
 
@@ -36,13 +36,13 @@ def run_genetic_algorithm(model: FaceClassifier):
     target_chromosome = GARI.img2chromosome(target_im)
 
     # Population size
-    sol_per_pop = 80
+    sol_per_pop = 75
     # Mating pool size
-    num_parents_mating = 12
+    num_parents_mating = 10
     # Mutation percentage
     mutation_percent = 0.05
     # Iterations
-    iterations = 5000
+    iterations = 10000
 
     """
     There might be inconsistency between the number of selected mating parents and 
@@ -66,7 +66,7 @@ def run_genetic_algorithm(model: FaceClassifier):
 
     for iteration in range(iterations + 1):
         # Measing the fitness of each chromosome in the population.
-        qualities = GARI.cal_pop_fitness(target_chromosome, new_population)
+        qualities = GARI.cal_pop_fitness(target_chromosome, new_population, model=model)
         print('Quality : ', numpy.max(qualities), ', Iteration : ', iteration)
 
         # Selecting the best parents in the population for mating.
@@ -88,11 +88,18 @@ def run_genetic_algorithm(model: FaceClassifier):
         new_population = GARI.mutation(population=new_population,
                                        num_parents_mating=num_parents_mating,
                                        mut_percent=mutation_percent)
+
+        # if iteration % 500 == 0:
+        #     for i, individual in enumerate(new_population):
+        #         img = GARI.chromosome2img(individual, img_shape=(200, 200, 3))
+        #         img = gaussian(img, multichannel=True, preserve_range=True)
+        #         new_population[i] = GARI.img2chromosome(numpy.array(img))
+
         """
         Save best individual in the generation as an image for later visualization.
         """
         GARI.save_images(iteration, qualities, new_population, target_im.shape,
-                         save_point=5000, save_dir=os.curdir + '/generated_faces/')
+                         save_point=1000, save_dir=os.curdir + '/generated_faces/')
 
     # Display the final generation
     GARI.show_indivs(new_population, target_im.shape)
