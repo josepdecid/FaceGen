@@ -7,6 +7,8 @@ from models.evolutionary import GARI
 from skimage.color import rgb2gray
 from skimage import io
 
+from models.evolutionary.face_classifier import FaceClassifier
+
 """
 Reproduce a single image using Genetic Algorithm (GA) by evolving 
 single pixel values.
@@ -24,7 +26,9 @@ Crossover is applied by exchanging half of genes from two parents.
 Mutation is applied by randomly changing the values of randomly selected 
 predefined percent of genes from the parents chromosome.
 """
-def run_genetic_algorithm():
+
+
+def run_genetic_algorithm(model: FaceClassifier):
     # Reading target image to be reproduced using Genetic Algorithm (GA).
     target_im = io.imread('face.jpg')
 
@@ -47,7 +51,7 @@ def run_genetic_algorithm():
     reproduce a new generation. If that occurred, the program will stop.
     """
     num_possible_permutations = len(list(itertools.permutations(
-                                        iterable=numpy.arange(0, num_parents_mating), r=2)))
+        iterable=numpy.arange(0, num_parents_mating), r=2)))
     num_required_permutations = sol_per_pop - num_possible_permutations
     if num_required_permutations > num_possible_permutations:
         print(
@@ -92,6 +96,3 @@ def run_genetic_algorithm():
 
     # Display the final generation
     GARI.show_indivs(new_population, target_im.shape)
-
-
-run_genetic_algorithm()

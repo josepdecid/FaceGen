@@ -10,6 +10,7 @@ from torchvision import transforms
 from dataset.FaceNoFaceDataset import FaceNoFaceDataset
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
+from models.evolutionary.GeneticAlgorithm import run_genetic_algorithm
 from models.evolutionary.face_classifier import FaceClassifier
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
@@ -43,20 +44,28 @@ def main(args):
         dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
         if args.model == 'GA':
-            fnf_dataset = FaceNoFaceDataset(os.environ['DATASET_PATH'],
-                                            os.environ['FNF_DATASET_PATH'],
-                                            transform=transform)
-            model = FaceClassifier()
-            trainer = GATrainer(model, fnf_dataset, log_tag=log_tag)
+            model: FaceClassifier = FaceClassifier()
+            if args.pretrained is None:
+                fnf_dataset = FaceNoFaceDataset(os.environ['DATASET_PATH'],
+                                                os.environ['FNF_DATASET_PATH'],
+                                                transform=transform)
+                model = FaceClassifier()
+                trainer = GATrainer(model, fnf_dataset, log_tag=log_tag)
+                trainer.train()
+            else:
+                model_weights = torch.load(args.pretrained)
+                model.load_state_dict(model_weights)
+
+            run_genetic_algorithm(model)
         elif args.model == 'GAN':
             G = Generator()
             D = Discriminator()
             trainer = GANTrainer(G=G, D=D, dataset=dataset, log_tag=log_tag)
+            trainer.train()
         else:
             model = VAE()
             trainer = VAETrainer(model=model, dataset=dataset, log_tag=log_tag)
-
-        trainer.train()
+            trainer.train()
     else:
         generate_samples(model_path=args.generate[0],
                          num_samples=args.generate[1])
@@ -66,6 +75,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='GAN for Face Generation.')
     parser.add_argument('model', type=str, choices=['GA', 'VAE', 'GAN'],
                         help='Choose model between VAE and GAN')
+    parser.add_argument('--pretrained', type=str, required=False,
+                        help='')
     parser.add_argument('--generate', nargs=2, required=False,
                         help='Whether to generate a sample instead of training the model. '
                              'Need to specify the model file name located in folder `/checkpoints`. '
