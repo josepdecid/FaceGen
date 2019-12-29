@@ -1,13 +1,14 @@
 from torch import nn, optim
 
 from constants.train_constants import *
+from dataset.FaceNoFaceDataset import FaceNoFaceDataset
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.evolutionary.face_classifier import FaceClassifier
 from trainers.trainer import Trainer
 
 
 class GATrainer(Trainer):
-    def __init__(self, model: FaceClassifier, dataset: UTKFaceDataset, log_tag: str):
+    def __init__(self, model: FaceClassifier, dataset: FaceNoFaceDataset, log_tag: str):
         super().__init__(dataset, log_tag)
 
         self.model = model
@@ -15,14 +16,11 @@ class GATrainer(Trainer):
         self.criterion = nn.BCELoss()
         self.optim = optim.Adam(params=self.model.parameters(), lr=0.01)
 
-    def _run_batch(self, images, iteration):
-        b_size = images.size(0)
-        labels = torch.full(size=(b_size,), fill_value=1, device=DEVICE)
-
+    def _run_batch(self, images, labels, iteration):
         self.model.zero_grad()
 
         pred = self.model(images)
-        loss = self.criterion(pred, labels)
+        loss = self.criterion(pred, labels.type(torch.float))
 
         loss.backward()
 

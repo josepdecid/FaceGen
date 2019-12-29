@@ -109,3 +109,4 @@ venv.bak/
 
 # Datasets
 dataset/UTKFace/
+dataset/CIFAR/

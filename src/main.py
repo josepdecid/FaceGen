@@ -7,6 +7,7 @@ import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
+from dataset.FaceNoFaceDataset import FaceNoFaceDataset
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
 from models.evolutionary.face_classifier import FaceClassifier
@@ -42,8 +43,11 @@ def main(args):
         dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
         if args.model == 'GA':
+            fnf_dataset = FaceNoFaceDataset(os.environ['DATASET_PATH'],
+                                            os.environ['FNF_DATASET_PATH'],
+                                            transform=transform)
             model = FaceClassifier()
-            trainer = GATrainer(model, dataset, log_tag=log_tag)
+            trainer = GATrainer(model, fnf_dataset, log_tag=log_tag)
         elif args.model == 'GAN':
             G = Generator()
             D = Discriminator()

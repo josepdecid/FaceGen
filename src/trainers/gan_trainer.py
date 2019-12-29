@@ -18,7 +18,7 @@ class GANTrainer(Trainer):
         self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.0002, betas=(0.5, 0.999))
         self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.0002, betas=(0.5, 0.999))
 
-    def _run_batch(self, images, iteration):
+    def _run_batch(self, images, labels, iteration):
         b_size = images.size(0)
 
         ################
