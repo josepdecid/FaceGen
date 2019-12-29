@@ -75,7 +75,8 @@ def fitness_fun(indiv_chrom, model):
     The fitness is basically calculated using the sum of absolute difference
     between genes values in the original and reproduced chromosomes.
     """
-    fitness = model(ToTensor()(chromosome2img(indiv_chrom, (200, 200, 3))))
+    img = chromosome2img(indiv_chrom, (200, 200, 3))
+    fitness = model(ToTensor()(img).view(1, 3, 200, 200))
     return fitness
 
 
@@ -90,14 +91,14 @@ def fitness_fun_difference(target_chrom, indiv_chrom):
     return quality
 
 
-def cal_pop_fitness(target_chrom, pop):
+def cal_pop_fitness(pop, model):
     """
     This method calculates the fitness of all solutions in the population.
     """
     qualities = numpy.zeros(pop.shape[0])
     for indv_num in range(pop.shape[0]):
         # Calling fitness_fun(...) to get the fitness of the current solution.
-        qualities[indv_num] = fitness_fun(target_chrom, pop[indv_num, :])
+        qualities[indv_num] = fitness_fun(pop[indv_num, :], model)
     return qualities
 
 

@@ -66,7 +66,7 @@ def run_genetic_algorithm(model: FaceClassifier):
 
     for iteration in range(iterations + 1):
         # Measing the fitness of each chromosome in the population.
-        qualities = GARI.cal_pop_fitness(target_chromosome, new_population, model=model)
+        qualities = GARI.cal_pop_fitness(new_population, model=model)
         print('Quality : ', numpy.max(qualities), ', Iteration : ', iteration)
 
         # Selecting the best parents in the population for mating.
@@ -99,7 +99,7 @@ def run_genetic_algorithm(model: FaceClassifier):
         Save best individual in the generation as an image for later visualization.
         """
         GARI.save_images(iteration, qualities, new_population, target_im.shape,
-                         save_point=1000, save_dir=os.curdir + '/generated_faces/')
+                         save_point=1000, save_dir=os.environ['CKPT_DIR'])
 
     # Display the final generation
     GARI.show_indivs(new_population, target_im.shape)
