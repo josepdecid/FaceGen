@@ -1,7 +1,7 @@
 import torch
 
 EPOCHS = 10
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 Z_SIZE = 100
 SHUFFLE_TRAIN = True
 

@@ -1,6 +1,7 @@
 import os
 from abc import abstractmethod, ABC
 
+import torchvision.utils as vutils
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -21,8 +22,10 @@ class Trainer(ABC):
         self._init_model()
 
         for epoch_idx in range(EPOCHS):
+            fake_samples = self._get_result_sample()
+            fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=3)
             self.writer.add_image(f'Epoch {epoch_idx} generation',
-                                  img_tensor=self._get_result_sample(),
+                                  img_tensor=fake_grid,
                                   global_step=epoch_idx)
             self._run_epoch(epoch_idx=epoch_idx)
 

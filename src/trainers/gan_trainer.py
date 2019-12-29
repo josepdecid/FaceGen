@@ -74,11 +74,15 @@ class GANTrainer(Trainer):
 
     def _get_result_sample(self):
         self.G.eval()
+        samples = []
         with torch.no_grad():
-            noise = torch.randn(size=(1, Z_SIZE), device=DEVICE)
-            fake_image = self.G(noise).squeeze()
+            for _ in range(9):
+                noise = torch.randn(size=(1, Z_SIZE), device=DEVICE)
+                output = self.G(noise).squeeze()
+                fake_image = (output - output.min()) / (output.max() - output.min())
+                samples.append(fake_image)
         self.G.train()
-        return fake_image
+        return torch.stack(samples, dim=0)
 
     @staticmethod
     def __weights_init(m):
