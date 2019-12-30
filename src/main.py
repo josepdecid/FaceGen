@@ -10,8 +10,8 @@ from torchvision import transforms
 from dataset.FaceNoFaceDataset import FaceNoFaceDataset
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
-from models.evolutionary.GeneticAlgorithm import run_genetic_algorithm
 from models.evolutionary.face_classifier import FaceClassifier
+from models.evolutionary.genetic_algorithm import GeneticAlgorithm
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
 from sampler import generate_samples
@@ -71,7 +71,8 @@ def main(args):
             # Run Genetic Algorithm
             model.eval()
             with torch.no_grad():
-                run_genetic_algorithm(model)
+                GA = GeneticAlgorithm(model, par=True)
+                GA.run()
 
         ##############################################
         # Using Generative Adversarial Networks (GANs)
