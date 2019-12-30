@@ -45,9 +45,17 @@ def main(args):
         ])
         dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
+        ################################
+        # Using Genetic Algorithms (GAs)
+        ################################
+
         if args.model == 'GA':
+            # Create a model for classifying between Faces or Non-Faces.
+            # We use the output of this model as the fitness function of our Genetic Algorithm.
             model: FaceClassifier = FaceClassifier()
+
             if args.pretrained is None:
+                # Train model from scratch using our main dataset as positive samples and CIFAR10 as negatives.
                 fnf_dataset = FaceNoFaceDataset(os.environ['DATASET_PATH'],
                                                 os.environ['FNF_DATASET_PATH'],
                                                 transform=transform)
@@ -55,16 +63,30 @@ def main(args):
                 trainer = GATrainer(model, fnf_dataset, log_tag=log_tag)
                 trainer.train()
             else:
+                # Load pretrained model from the checkpoints directory.
                 path = os.path.join(os.environ['CKPT_DIR'], f'{args.pretrained}.pt')
                 model_weights = torch.load(path)
                 model.load_state_dict(model_weights)
+
+            # Run Genetic Algorithm
             model.eval()
-            run_genetic_algorithm(model)
+            with torch.no_grad():
+                run_genetic_algorithm(model)
+
+        ##############################################
+        # Using Generative Adversarial Networks (GANs)
+        ##############################################
+
         elif args.model == 'GAN':
             G = Generator()
             D = Discriminator()
             trainer = GANTrainer(G=G, D=D, dataset=dataset, log_tag=log_tag)
             trainer.train()
+
+        ########################################
+        # Using Variational Auto Encoders (VAEs)
+        ########################################
+
         else:
             model = VAE()
             trainer = VAETrainer(model=model, dataset=dataset, log_tag=log_tag)
