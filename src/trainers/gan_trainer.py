@@ -15,10 +15,10 @@ class GANTrainer(Trainer):
         self.D = D
 
         self.criterion = nn.BCELoss()
-        self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.0002, betas=(0.5, 0.999))
-        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.00025, betas=(0.5, 0.999))
+        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.00025, betas=(0.5, 0.999))
 
-    def _run_batch(self, images, labels, iteration):
+    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         b_size = images.size(0)
 
         ################
@@ -28,18 +28,18 @@ class GANTrainer(Trainer):
         self.D.zero_grad()
 
         labels = torch.full(size=(b_size,), fill_value=1, device=DEVICE)
-        pred = self.D(images).view(-1)
-        err_real_D = self.criterion(pred, labels)
-        err_real_D.backward()
+        prediction = self.D(images).view(-1)
+        loss_real_D = self.criterion(prediction, labels)
+        loss_real_D.backward()
 
         labels.fill_(value=0)
         noise = torch.randn(size=(b_size, Z_SIZE), device=DEVICE)
         fake_images = self.G(noise)
-        pred = self.D(fake_images.detach()).view(-1)
-        err_fake_D = self.criterion(pred, labels)
-        err_fake_D.backward()
+        prediction = self.D(fake_images.detach()).view(-1)
+        loss_fake_D = self.criterion(prediction, labels)
+        loss_fake_D.backward()
 
-        err_D = err_real_D + err_fake_D
+        loss_D = loss_real_D + loss_fake_D
 
         self.optim_D.step()
 
@@ -50,14 +50,14 @@ class GANTrainer(Trainer):
         self.G.zero_grad()
 
         labels.fill_(value=1)
-        pred = self.D(fake_images).view(-1)
-        err_G = self.criterion(pred, labels)
-        err_G.backward()
+        prediction = self.D(fake_images).view(-1)
+        loss_G = self.criterion(prediction, labels)
+        loss_G.backward()
 
         self.optim_G.step()
 
-        self.writer.add_scalar('Generator Loss', err_G, iteration)  # , tag=self.log_tag)
-        self.writer.add_scalar('Discriminator Loss', err_D, iteration)  # , tag=self.log_tag)
+        self.writer.add_scalar('Generator Loss', loss_G, iteration)  # , tag=self.log_tag)
+        self.writer.add_scalar('Discriminator Loss', loss_D, iteration)  # , tag=self.log_tag)
 
     def _init_model(self):
         # Send both networks to the corresponding device (GPU or CPU)
@@ -83,6 +83,9 @@ class GANTrainer(Trainer):
                 samples.append(fake_image)
         self.G.train()
         return torch.stack(samples, dim=0)
+
+    def _save_checkpoint(self, epoch: int):
+        pass
 
     @staticmethod
     def __weights_init(m):

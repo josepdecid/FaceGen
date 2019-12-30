@@ -22,12 +22,6 @@ class Trainer(ABC):
         self._init_model()
 
         for epoch_idx in range(EPOCHS):
-            fake_samples = self._get_result_sample()
-            if fake_samples is not None:
-                fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=3)
-                self.writer.add_image(f'Epoch {epoch_idx} generation',
-                                      img_tensor=fake_grid,
-                                      global_step=epoch_idx)
             self._run_epoch(epoch_idx=epoch_idx)
 
         self.writer.close()
@@ -38,17 +32,24 @@ class Trainer(ABC):
                                               total=num_batches, ncols=100,
                                               position=0, leave=True,
                                               desc=f'Epoch {epoch_idx:4}')):
+            iteration = epoch_idx * num_batches + batch_idx
+
             if isinstance(data, list):
-                self._run_batch(data[0].to(DEVICE), data[1].to(DEVICE),
-                                iteration=epoch_idx * num_batches + batch_idx)
+                self._run_batch(data[0].to(DEVICE), data[1].to(DEVICE), iteration=iteration)
             else:
-                self._run_batch(data.to(DEVICE), torch.zeros(),
-                                iteration=epoch_idx * num_batches + batch_idx)
+                self._run_batch(data.to(DEVICE), iteration=iteration)
+
+            if batch_idx % 100 == 0:
+                fake_samples = self._get_result_sample()
+                if fake_samples is not None:
+                    fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=3)
+                    self.writer.add_image(f'Iteration {iteration} generation',
+                                          img_tensor=fake_grid, global_step=iteration)
 
         self._save_checkpoint(epoch=epoch_idx)
 
     @abstractmethod
-    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor, iteration: int) -> None:
+    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         pass
 
     @abstractmethod

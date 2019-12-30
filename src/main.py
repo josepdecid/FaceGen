@@ -38,8 +38,9 @@ def main(args):
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomPerspective(),
-            transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-            transforms.RandomRotation(degrees=20),
+            # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+            transforms.RandomRotation(degrees=10),
+            transforms.Resize(size=(200, 200)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
