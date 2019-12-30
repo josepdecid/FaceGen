@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import optim, nn
 
@@ -16,14 +17,12 @@ class VAETrainer(Trainer):
         self.criterion = MSEKLDLoss()
         self.optim = optim.Adam(params=self.model.parameters())
 
-    def _run_batch(self, images: torch.Tensor, iteration: int) -> None:
-        b_size = images.size(0)
-
+    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         self.model.zero_grad()
 
-        reconstructed_images, mu, log_var = self.model(images)
+        reconstructed_images, self.mu, self.log_var = self.model(images)
 
-        loss = self.criterion(reconstructed_images, images, mu, log_var)
+        loss = self.criterion(reconstructed_images, images, self.mu, self.log_var)
         loss.backward()
 
         self.optim.step()
@@ -48,3 +47,20 @@ class VAETrainer(Trainer):
         elif class_name.find('BatchNorm') != -1:
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
+
+    def _get_result_sample(self):
+        self.model.eval()
+        samples = []
+        with torch.no_grad():
+            for _ in range(9):
+                latent = self.model.parametrize(self.mu, self.log_var)
+                fake_image = self.model.decode(latent)
+                samples.append(fake_image)
+        self.model.train()
+        return torch.stack(samples, dim=0)
+
+    def _save_checkpoint(self, epoch: int):
+        save_path = os.path.join(os.environ["CKPT_DIR"], f'VAE_{self.log_tag}_{epoch}.pt')
+        torch.save(self.model.state_dict(), save_path)
+        torch.save(self.mu, save_path)
+        torch.save(self.log_var, save_path)
