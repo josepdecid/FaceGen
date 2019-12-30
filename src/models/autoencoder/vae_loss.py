@@ -5,7 +5,7 @@ from torch import nn
 class MSEKLDLoss(nn.Module):
     def __init__(self):
         super().__init__()
-        self.mse_loss = nn.MSELoss(reduction='none')
+        self.mse_loss = nn.MSELoss(reduction='sum')
 
     def forward(self, x1, x2, mu, log_var):
         MSE = self.mse_loss(x1, x2)

@@ -37,7 +37,7 @@ def main(args):
 
         transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomPerspective(),
+            transforms.RandomPerspective(distortion_scale=0.2),
             # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
             transforms.RandomRotation(degrees=10),
             transforms.Resize(size=(200, 200)),
