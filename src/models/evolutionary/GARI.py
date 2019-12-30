@@ -5,7 +5,10 @@ import random
 
 import matplotlib.pyplot
 import numpy
+import torch
 from torchvision.transforms import ToTensor
+
+from constants.train_constants import DEVICE
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).
@@ -95,11 +98,10 @@ def cal_pop_fitness(pop, model):
     """
     This method calculates the fitness of all solutions in the population.
     """
-    qualities = numpy.zeros(pop.shape[0])
-    for indv_num in range(pop.shape[0]):
-        # Calling fitness_fun(...) to get the fitness of the current solution.
-        qualities[indv_num] = fitness_fun(pop[indv_num, :], model)
-    return qualities
+    images = numpy.reshape(pop, newshape=(pop.shape[0], 3, 200, 200))
+    images = torch.from_numpy(images / 255.0).float()
+    fitness = model(images)
+    return fitness.cpu().detach().numpy()
 
 
 def select_mating_pool(pop, qualities, num_parents):

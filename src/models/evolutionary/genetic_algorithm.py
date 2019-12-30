@@ -1,11 +1,11 @@
 import itertools
 import multiprocessing
 from multiprocessing.pool import ThreadPool
-from threading import Lock
 
 import numpy
 from tqdm import tqdm
 
+from constants.train_constants import DEVICE
 from models.evolutionary import GARI
 from models.evolutionary.face_classifier import FaceClassifier
 
@@ -42,7 +42,7 @@ class GeneticAlgorithm:
         self.mutation_percent = 0.05
         # Iterations
         self.generations = 10000
-        self.generations_until_merge = 1
+        self.generations_until_merge = 5
 
         # There might be inconsistency between the number of selected mating parents and
         # number of selected individuals within the population.
@@ -54,6 +54,8 @@ class GeneticAlgorithm:
             raise AttributeError('Inconsistency in the selected population size or number of parents.')
 
     def run(self):
+        self.model = self.model
+
         if self.par:
             # Creating an initial population randomly.
             cores = multiprocessing.cpu_count()
@@ -62,15 +64,21 @@ class GeneticAlgorithm:
 
             for i in range(1, self.generations // self.generations_until_merge + 1):
                 pool = ThreadPool(cores)
-                lock = Lock()
+                lock = multiprocessing.Lock()
 
                 next_populations = []
                 for c, new_population in enumerate(new_populations):
-                    pool.apply_async(self._run_n_generations, args=(c, new_population, lock),
-                                     callback=lambda x: next_populations.append(x))
+                    # next_populations.append(
+                    #    pool.apply(self._run_n_generations, args=(c, new_population, lock, workers)))
+                    result = pool.apply_async(self._run_n_generations, args=(c, new_population, lock))
+                    next_populations.append(result)
 
                 pool.close()
                 pool.join()
+
+                for idx, result in enumerate(next_populations):
+                    result.wait()
+                    next_populations[idx] = result.get()
 
                 next_merged_population = numpy.concatenate(next_populations, axis=0)
 
@@ -82,6 +90,8 @@ class GeneticAlgorithm:
         else:
             new_population = GARI.initial_population(img_shape=self.target_shape,
                                                      n_individuals=self.sol_per_pop)
+
+            new_population = self._run_n_generations(0, new_population)
 
             # Display the final generation
             # GARI.show_indivs(new_population, target_shape)
@@ -116,9 +126,11 @@ class GeneticAlgorithm:
             #                  save_point=1000, save_dir=os.environ['CKPT_DIR'])
 
             if lock is not None:
-                pb.update()
+                with lock:
+                    pb.update()
 
         if lock is not None:
-            pb.close()
+            with lock:
+                pb.close()
 
         return new_population
