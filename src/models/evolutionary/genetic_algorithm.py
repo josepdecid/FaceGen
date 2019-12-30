@@ -1,9 +1,10 @@
 import itertools
 import multiprocessing
-import os
 from multiprocessing.pool import ThreadPool
+from threading import Lock
 
 import numpy
+from tqdm import tqdm
 
 from models.evolutionary import GARI
 from models.evolutionary.face_classifier import FaceClassifier
@@ -40,7 +41,8 @@ class GeneticAlgorithm:
         # Mutation percentage
         self.mutation_percent = 0.05
         # Iterations
-        self.iterations = 10000
+        self.generations = 10000
+        self.generations_until_merge = 1
 
         # There might be inconsistency between the number of selected mating parents and
         # number of selected individuals within the population.
@@ -53,17 +55,30 @@ class GeneticAlgorithm:
 
     def run(self):
         if self.par:
-            cores = min(multiprocessing.cpu_count(), 5)
-            pool = ThreadPool(cores)
-
             # Creating an initial population randomly.
+            cores = multiprocessing.cpu_count()
             new_populations = [GARI.initial_population(img_shape=self.target_shape,
                                                        n_individuals=self.sol_per_pop) for _ in range(cores)]
 
-            pool.map_async(self._run_n_generations, new_populations)
+            for i in range(1, self.generations // self.generations_until_merge + 1):
+                pool = ThreadPool(cores)
+                lock = Lock()
 
-            pool.close()
-            pool.join()
+                next_populations = []
+                for c, new_population in enumerate(new_populations):
+                    pool.apply_async(self._run_n_generations, args=(c, new_population, lock),
+                                     callback=lambda x: next_populations.append(x))
+
+                pool.close()
+                pool.join()
+
+                next_merged_population = numpy.concatenate(next_populations, axis=0)
+
+                fitness_value = GARI.cal_pop_fitness(next_merged_population, model=self.model)
+                new_population = GARI.select_mating_pool(pop=next_merged_population,
+                                                         qualities=fitness_value,
+                                                         num_parents=self.num_parents_mating)
+                new_populations = [numpy.copy(new_population) for _ in range(cores)]
         else:
             new_population = GARI.initial_population(img_shape=self.target_shape,
                                                      n_individuals=self.sol_per_pop)
@@ -71,10 +86,14 @@ class GeneticAlgorithm:
             # Display the final generation
             # GARI.show_indivs(new_population, target_shape)
 
-    def _run_n_generations(self, n: int, new_population):
-        for generation in range(n):
+    def _run_n_generations(self, c: int, new_population: numpy.ndarray, lock=None):
+        if lock is not None:
+            with lock:
+                pb = tqdm(total=self.generations_until_merge, desc=f'Thread {c}', ncols=100, position=c)
+
+        for generation in range(self.generations_until_merge):
             fitness_value = GARI.cal_pop_fitness(new_population, model=self.model)
-            print(f'Fitness : {numpy.max(fitness_value)}, Iteration : {generation}')
+            # print(f'Fitness : {numpy.max(fitness_value)}, Iteration : {generation}')
 
             # Selecting the best parents in the population for mating.
             parents = GARI.select_mating_pool(pop=new_population,
@@ -93,7 +112,13 @@ class GeneticAlgorithm:
             """
             Save best individual in the generation as an image for later visualization.
             """
-            GARI.save_images(generation, fitness_value, new_population, self.target_shape,
-                             save_point=1000, save_dir=os.environ['CKPT_DIR'])
+            # GARI.save_images(generation, fitness_value, new_population, self.target_shape,
+            #                  save_point=1000, save_dir=os.environ['CKPT_DIR'])
+
+            if lock is not None:
+                pb.update()
+
+        if lock is not None:
+            pb.close()
 
         return new_population
