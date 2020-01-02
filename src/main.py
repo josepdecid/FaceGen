@@ -40,7 +40,7 @@ def main(args):
             transforms.RandomPerspective(distortion_scale=0.2),
             # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
             transforms.RandomRotation(degrees=10),
-            transforms.Resize(size=(200, 200)),
+            # transforms.Resize(size=(200, 200)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
@@ -57,8 +57,8 @@ def main(args):
 
             if args.pretrained is None:
                 # Train model from scratch using our main dataset as positive samples and CIFAR10 as negatives.
-                fnf_dataset = FaceNoFaceDataset(os.environ['DATASET_PATH'],
-                                                os.environ['FNF_DATASET_PATH'],
+                fnf_dataset = FaceNoFaceDataset(root_positive=os.path.join(os.environ['DATASET_PATH'], 'Positive'),
+                                                root_negative=os.path.join(os.environ['FNF_DATASET_PATH'], 'Negative'),
                                                 transform=transform)
                 model = FaceClassifier()
                 trainer = GATrainer(model, fnf_dataset, log_tag=log_tag)
@@ -72,8 +72,8 @@ def main(args):
             # Run Genetic Algorithm
             model.eval()
             with torch.no_grad():
-                GA = GeneticAlgorithm(model, par=True)
-                GA.run()
+                GA = GeneticAlgorithm(model, par=False)
+                GA.run(dataset)
 
         ##############################################
         # Using Generative Adversarial Networks (GANs)

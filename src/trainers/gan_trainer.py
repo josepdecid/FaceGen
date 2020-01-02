@@ -16,19 +16,19 @@ class GANTrainer(Trainer):
 
         self.criterion = nn.BCELoss()
         self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.00025, betas=(0.5, 0.999))
-        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.00025, betas=(0.5, 0.999))
+        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.0001, betas=(0.5, 0.999))
 
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         b_size = images.size(0)
 
         true_labels = torch.empty(size=(b_size,), device=DEVICE).normal_(mean=1, std=0.2)
-        true_labels = torch.min(true_labels, torch.ones(b_size))
+        true_labels = torch.min(true_labels, torch.ones(b_size, device=DEVICE))
 
         fake_labels = torch.empty(size=(b_size,), device=DEVICE).normal_(mean=0, std=0.2)
-        fake_labels = torch.max(fake_labels, torch.zeros(b_size))
+        fake_labels = torch.max(fake_labels, torch.zeros(b_size, device=DEVICE))
 
         # Add noise to images
-        images += 0.05 * torch.randn(size=(b_size, 3, 200, 200))
+        images += 0.05 * torch.randn(size=(b_size, 3, 200, 200), device=DEVICE)
 
         ################
         # D Optimization
@@ -41,7 +41,7 @@ class GANTrainer(Trainer):
         loss_real_D.backward()
 
         noise = torch.randn(size=(b_size, Z_SIZE), device=DEVICE)
-        fake_images = self.G(noise) + 0.05 * torch.randn(size=(b_size, 3, 200, 200))
+        fake_images = self.G(noise) + 0.05 * torch.randn(size=(b_size, 3, 200, 200), device=DEVICE)
 
         prediction = self.D(fake_images.detach()).view(-1)
         loss_fake_D = self.criterion(prediction, fake_labels)

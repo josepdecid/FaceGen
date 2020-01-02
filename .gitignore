@@ -18,6 +18,7 @@ lib/
 lib64/
 parts/
 runs/
+checkpoints/
 sdist/
 var/
 wheels/
@@ -110,3 +111,5 @@ venv.bak/
 # Datasets
 dataset/UTKFace/
 dataset/CIFAR/
+dataset/CelebA/
+dataset/FNF/

@@ -2,13 +2,15 @@ import functools
 import itertools
 import operator
 import random
+import os
 
 import matplotlib.pyplot
-import numpy
+import numpy as np
+
 import torch
 from torchvision.transforms import ToTensor
 
-from constants.train_constants import DEVICE
+from constants.train_constants import DEVICE, IMG_SIZE
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).
@@ -41,26 +43,21 @@ def img2chromosome(img_arr):
     chromosome its actual value in the image.
     Image is converted into a chromosome by reshaping it as a single row vector.
     """
-    chromosome = numpy.reshape(a=img_arr,
-                               newshape=(functools.reduce(operator.mul,
-                                                          img_arr.shape)))
+    chromosome = np.reshape(a=img_arr,
+                            newshape=(functools.reduce(operator.mul,
+                                                       img_arr.shape)))
     return chromosome
 
 
-def initial_population(img_shape, n_individuals=8):
-    """
-    Creating an initial population randomly.
-    """
-    # Empty population of chromosomes accoridng to the population size specified.
-    init_population = numpy.empty(shape=(n_individuals,
-                                         functools.reduce(operator.mul, img_shape)),
-                                  dtype=numpy.uint8)
-    for indv_num in range(n_individuals):
-        # Randomly generating initial population chromosomes genes values.
-        init_population[indv_num, :] = numpy.random.random(
-            functools.reduce(operator.mul, img_shape)) * 256
-    return init_population
-
+def initial_population(img_shape, n_individuals=8, face=None):
+    """Creating an initial population randomly."""
+    population = np.random.random(size=(n_individuals, IMG_SIZE * IMG_SIZE * 3)) * 2 - 1
+    population[-1,:] = img2chromosome(face)
+    # for individual in population:
+    #     img = chromosome2img(individual, img_shape=(IMG_SIZE, IMG_SIZE, 3))
+    #     # img[:]
+    #     pass
+    return population
 
 def chromosome2img(chromosome, img_shape):
     """
@@ -68,7 +65,7 @@ def chromosome2img(chromosome, img_shape):
     The encoding used is value encoding by giving each gene in the chromosome 
     its actual value.
     """
-    img_arr = numpy.reshape(a=chromosome, newshape=img_shape)
+    img_arr = np.reshape(a=chromosome, newshape=img_shape)
     return img_arr
 
 
@@ -89,7 +86,7 @@ def fitness_fun_difference(target_chrom, indiv_chrom):
     The fitness is basicly calculated using the sum of absolute difference
     between genes values in the original and reproduced chromosomes.
     """
-    quality = numpy.mean(numpy.abs(target_chrom - indiv_chrom))
+    quality = np.mean(np.abs(target_chrom - indiv_chrom))
     quality = -quality
     return quality
 
@@ -98,8 +95,8 @@ def cal_pop_fitness(pop, model):
     """
     This method calculates the fitness of all solutions in the population.
     """
-    images = numpy.reshape(pop, newshape=(pop.shape[0], 3, 200, 200))
-    images = torch.from_numpy(images / 255.0).float()
+    images = np.reshape(pop, newshape=(pop.shape[0], 3, IMG_SIZE, IMG_SIZE))
+    images = torch.from_numpy(images).float().to(DEVICE)
     fitness = model(images)
     return fitness.cpu().detach().numpy()
 
@@ -109,10 +106,10 @@ def select_mating_pool(pop, qualities, num_parents):
     Selects the best individuals in the current generation, according to the 
     number of parents specified, for mating and generating a new better population.
     """
-    parents = numpy.empty((num_parents, pop.shape[1]), dtype=numpy.uint8)
+    parents = np.empty((num_parents, pop.shape[1]), dtype=np.uint8)
     for parent_num in range(num_parents):
         # Retrieving the best unselected solution.
-        max_qual_idx = numpy.where(qualities == numpy.max(qualities))
+        max_qual_idx = np.where(qualities == np.max(qualities))
         max_qual_idx = max_qual_idx[0][0]
         # Appending the currently selected 
         parents[parent_num, :] = pop[max_qual_idx, :]
@@ -129,9 +126,9 @@ def crossover(parents, img_shape, n_individuals=8):
     Applying crossover operation to the set of currently selected parents to 
     create a new generation.
     """
-    new_population = numpy.empty(shape=(n_individuals,
-                                        functools.reduce(operator.mul, img_shape)),
-                                 dtype=numpy.uint8)
+    new_population = np.empty(shape=(n_individuals,
+                                     functools.reduce(operator.mul, img_shape)),
+                              dtype=np.uint8)
 
     """
     Selecting the best previous parents to be individuals in the new generation.
@@ -152,7 +149,7 @@ def crossover(parents, img_shape, n_individuals=8):
     # parents mating is 4, then number of offspring to be generated is 4.
     num_newly_generated = n_individuals - parents.shape[0]
     # Getting all possible permutations of the selected parents.
-    parents_permutations = list(itertools.permutations(iterable=numpy.arange(0, parents.shape[0]), r=2))
+    parents_permutations = list(itertools.permutations(iterable=np.arange(0, parents.shape[0]), r=2))
     # Randomly selecting the parents permutations to generate the offspring.
     selected_permutations = random.sample(range(len(parents_permutations)),
                                           num_newly_generated)
@@ -164,7 +161,7 @@ def crossover(parents, img_shape, n_individuals=8):
         selected_comb = parents_permutations[selected_comb_idx]
 
         # Applying crossover by exchanging half of the genes between two parents.
-        half_size = numpy.int32(new_population.shape[1] / 2)
+        half_size = np.int32(new_population.shape[1] / 2)
         new_population[comb_idx + comb, 0:half_size] = parents[selected_comb[0],
                                                        0:half_size]
         new_population[comb_idx + comb, half_size:] = parents[selected_comb[1],
@@ -180,32 +177,34 @@ def mutation(population, num_parents_mating, mut_percent):
     """
     for idx in range(num_parents_mating, population.shape[0]):
         # A predefined percent of genes are selected randomly.
-        rand_idx = numpy.uint32(numpy.random.random(size=numpy.uint32(mut_percent / 100 * population.shape[1]))
-                                * population.shape[1])
+        rand_idx = np.uint32(np.random.random(size=np.uint32(mut_percent / 100 * population.shape[1]))
+                             * population.shape[1])
         # Changing the values of the selected genes randomly.
-        new_values = numpy.uint8(numpy.random.random(size=rand_idx.shape[0]) * 256)
+        new_values = np.random.random(size=rand_idx.shape[0]) * 2 - 1
         # Updating population after mutation.
         population[idx, rand_idx] = new_values
     return population
 
 
-def save_images(curr_iteration, qualities, new_population, im_shape,
+def save_images(curr_iteration, new_population, model, im_shape,
                 save_point, save_dir):
     """
     Saving best solution in a given generation as an image in the specified directory.
     Images are saved accoirding to stop points to avoid saving images from 
     all generations as saving mang images will make the algorithm slow.
     """
-    if numpy.mod(curr_iteration, save_point) == 0:
+    qualities = cal_pop_fitness(new_population, model)
+    if np.mod(curr_iteration, save_point) == 0:
         # Selecting best solution (chromosome) in the generation.
-        best_solution_chrom = new_population[numpy.where(qualities ==
-                                                         numpy.max(qualities))[0][0], :]
+        best_solution_chrom = new_population[np.where(qualities ==
+                                                      np.max(qualities))[0][0], :]
         # Decoding the selected chromosome to return it back as an image.
         best_solution_img = chromosome2img(best_solution_chrom, im_shape)
         # Saving the image in the specified directory.
-        matplotlib.pyplot.imsave(save_dir + 'solution_' + str(curr_iteration) + '.png', best_solution_img)
-        matplotlib.pyplot.imshow(best_solution_img, cmap='gray')
-        matplotlib.pyplot.show()
+        matplotlib.pyplot.imsave(os.path.join(save_dir, f'solution_{curr_iteration}_{np.max(qualities)}.png'),
+                                 best_solution_img)
+        # matplotlib.pyplot.imshow(best_solution_img, cmap='gray')
+        # matplotlib.pyplot.show()
 
 
 def show_indivs(individuals, im_shape):
@@ -214,8 +213,8 @@ def show_indivs(individuals, im_shape):
     """
     num_ind = individuals.shape[0]
     fig_row_col = 1
-    for k in range(1, numpy.uint16(individuals.shape[0] / 2)):
-        if numpy.floor(numpy.power(k, 2) / num_ind) == 1:
+    for k in range(1, np.uint16(individuals.shape[0] / 2)):
+        if np.floor(np.power(k, 2) / num_ind) == 1:
             fig_row_col = k
             break
     fig1, axis1 = matplotlib.pyplot.subplots(fig_row_col, fig_row_col)

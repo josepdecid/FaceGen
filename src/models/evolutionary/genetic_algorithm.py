@@ -1,11 +1,13 @@
 import itertools
 import multiprocessing
 from multiprocessing.pool import ThreadPool
+import os
 
 import numpy
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from constants.train_constants import DEVICE
+from constants.train_constants import DEVICE, IMG_SIZE
 from models.evolutionary import GARI
 from models.evolutionary.face_classifier import FaceClassifier
 
@@ -33,7 +35,7 @@ class GeneticAlgorithm:
         self.model = model
         self.par = par
 
-        self.target_shape = (200, 200, 3)
+        self.target_shape = (IMG_SIZE, IMG_SIZE, 3)
         # Population size
         self.sol_per_pop = 75
         # Mating pool size
@@ -41,8 +43,10 @@ class GeneticAlgorithm:
         # Mutation percentage
         self.mutation_percent = 0.05
         # Iterations
-        self.generations = 10000
+        self.generations = 2000
         self.generations_until_merge = 5
+
+        self.writer = SummaryWriter(log_dir=os.environ['LOG_DIR'])
 
         # There might be inconsistency between the number of selected mating parents and
         # number of selected individuals within the population.
@@ -53,8 +57,8 @@ class GeneticAlgorithm:
         if required_perm > possible_perm:
             raise AttributeError('Inconsistency in the selected population size or number of parents.')
 
-    def run(self):
-        self.model = self.model
+    def run(self, dataset):
+        self.model = self.model.to(DEVICE)
 
         if self.par:
             # Creating an initial population randomly.
@@ -67,10 +71,10 @@ class GeneticAlgorithm:
                 lock = multiprocessing.Lock()
 
                 next_populations = []
+                next_fitness = [[] for _ in range(cores)]
                 for c, new_population in enumerate(new_populations):
-                    # next_populations.append(
-                    #    pool.apply(self._run_n_generations, args=(c, new_population, lock, workers)))
-                    result = pool.apply_async(self._run_n_generations, args=(c, new_population, lock))
+                    result = pool.apply_async(self._run_n_generations,
+                                              args=(c, self.generations_until_merge, new_population, lock))
                     next_populations.append(result)
 
                 pool.close()
@@ -78,31 +82,46 @@ class GeneticAlgorithm:
 
                 for idx, result in enumerate(next_populations):
                     result.wait()
-                    next_populations[idx] = result.get()
+                    next_populations[idx], next_fitness[idx] = result.get()
 
-                next_merged_population = numpy.concatenate(next_populations, axis=0)
+                for it in range(self.generations_until_merge):
+                    self.writer.add_scalars('Fitness value',
+                                            {f'C{c}': next_fitness[c][it].max()
+                                             for c in range(len(next_fitness))},
+                                            (i - 1) * self.generations_until_merge + it)
 
-                fitness_value = GARI.cal_pop_fitness(next_merged_population, model=self.model)
-                new_population = GARI.select_mating_pool(pop=next_merged_population,
-                                                         qualities=fitness_value,
-                                                         num_parents=self.num_parents_mating)
-                new_populations = [numpy.copy(new_population) for _ in range(cores)]
+                    next_merged_population = numpy.concatenate(next_populations, axis=0)
+
+                    fitness_value = GARI.cal_pop_fitness(next_merged_population, model=self.model)
+                    new_population = GARI.select_mating_pool(pop=next_merged_population,
+                                                             qualities=fitness_value,
+                                                             num_parents=self.num_parents_mating)
+                    GARI.save_images(i, new_population, self.model, self.target_shape,
+                                     save_point=i, save_dir=os.environ['CKPT_DIR'])
+                    new_populations = [numpy.copy(new_population) for _ in range(cores)]
         else:
             new_population = GARI.initial_population(img_shape=self.target_shape,
-                                                     n_individuals=self.sol_per_pop)
+                                                     n_individuals=self.sol_per_pop,
+                                                     face=dataset[0])
 
-            new_population = self._run_n_generations(0, new_population)
-
+            new_population, _ = self._run_n_generations(0, self.generations, new_population)
             # Display the final generation
             # GARI.show_indivs(new_population, target_shape)
+            GARI.save_images(self.generations, new_population, self.model, self.target_shape,
+                             save_point=self.generations, save_dir=os.environ['CKPT_DIR'])
 
-    def _run_n_generations(self, c: int, new_population: numpy.ndarray, lock=None):
+    def _run_n_generations(self, c: int, generations: int, new_population: numpy.ndarray, lock=None):
         if lock is not None:
             with lock:
-                pb = tqdm(total=self.generations_until_merge, desc=f'Thread {c}', ncols=100, position=c)
+                pb = tqdm(total=generations, desc=f'Thread {c}', ncols=100, position=c)
+        else:
+            pb = tqdm(total=generations, desc=f'Generations', ncols=100)
 
-        for generation in range(self.generations_until_merge):
+        fitness_values = []
+
+        for generation in range(generations):
             fitness_value = GARI.cal_pop_fitness(new_population, model=self.model)
+            fitness_values.append(fitness_value)
             # print(f'Fitness : {numpy.max(fitness_value)}, Iteration : {generation}')
 
             # Selecting the best parents in the population for mating.
@@ -122,15 +141,20 @@ class GeneticAlgorithm:
             """
             Save best individual in the generation as an image for later visualization.
             """
-            # GARI.save_images(generation, fitness_value, new_population, self.target_shape,
-            #                  save_point=1000, save_dir=os.environ['CKPT_DIR'])
+            GARI.save_images(generation, new_population, self.model, self.target_shape,
+                             save_point=1000, save_dir=os.environ['CKPT_DIR'])
 
             if lock is not None:
                 with lock:
                     pb.update()
+            else:
+                self.writer.add_scalar('Fitness value', fitness_value.max(), global_step=generation)
+                pb.update()
 
         if lock is not None:
             with lock:
                 pb.close()
+        else:
+            pb.close()
 
-        return new_population
+        return new_population, fitness_values

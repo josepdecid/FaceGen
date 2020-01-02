@@ -1,11 +1,12 @@
 import os
 from glob import glob
 
-import torch
 from PIL import Image
 from torchvision import get_image_backend
 from torchvision.datasets import VisionDataset
 from torchvision.transforms import Resize
+
+from constants.train_constants import IMG_SIZE
 
 
 class FaceNoFaceDataset(VisionDataset):
@@ -23,11 +24,12 @@ class FaceNoFaceDataset(VisionDataset):
     def __init__(self, root_positive, root_negative, transform=None):
         super().__init__(root_positive, transform=transform)
 
-        self.positive_samples = FaceNoFaceDataset.__make_dataset(self.root)
+        self.positive_samples = FaceNoFaceDataset.__make_dataset(root_positive)
         self.negative_samples = FaceNoFaceDataset.__make_dataset(root_negative)
 
         self.samples = self.positive_samples + self.negative_samples
-        self.labels = [1 for _ in range(len(self.positive_samples))] + [0 for _ in range(len(self.negative_samples))]
+        self.labels = [1 for _ in range(len(self.positive_samples))] + \
+                      [0 for _ in range(len(self.negative_samples))]
 
         if len(self.samples) == 0:
             raise RuntimeError(f'Found 0 .jpg files in {self.root}')
@@ -43,7 +45,7 @@ class FaceNoFaceDataset(VisionDataset):
         path = self.samples[index]
         sample = self.__loader(path)
         if index >= len(self.positive_samples):
-            sample = Resize(size=(200, 200))(sample)
+            sample = Resize(size=(IMG_SIZE, IMG_SIZE))(sample)
         if self.transform is not None:
             sample = self.transform(sample)
         return sample, self.labels[index]

@@ -14,7 +14,7 @@ class GATrainer(Trainer):
         self.model = model
 
         self.criterion = nn.BCELoss()
-        self.optim = optim.Adam(params=self.model.parameters(), lr=0.001)
+        self.optim = optim.Adam(params=self.model.parameters(), lr=0.01)
 
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         self.model.zero_grad()
