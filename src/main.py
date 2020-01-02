@@ -57,7 +57,7 @@ def main(args):
 
             if args.pretrained is None:
                 # Train model from scratch using our main dataset as positive samples and CIFAR10 as negatives.
-                fnf_dataset = FaceNoFaceDataset(root_positive=os.path.join(os.environ['DATASET_PATH'], 'Positive'),
+                fnf_dataset = FaceNoFaceDataset(root_positive=os.path.join(os.environ['FNF_DATASET_PATH'], 'Positive'),
                                                 root_negative=os.path.join(os.environ['FNF_DATASET_PATH'], 'Negative'),
                                                 transform=transform)
                 model = FaceClassifier()
