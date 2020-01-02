@@ -13,14 +13,19 @@ class GATrainer(Trainer):
 
         self.model = model
 
-        self.criterion = nn.BCELoss()
+        self.criterion = nn.MSELoss()
         self.optim = optim.Adam(params=self.model.parameters(), lr=0.01)
 
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         self.model.zero_grad()
 
+        labels = torch.rand(size=(images.size(0),))
+        images += torch.tensordot(a=(torch.ones_like(labels) - labels).view(-1, 1),
+                                  b=torch.rand(size=images.size(), device=DEVICE),
+                                  dims=1).to(DEVICE)
+
         pred = self.model(images)
-        loss = self.criterion(pred, labels.type(torch.float))
+        loss = self.criterion(pred, labels)
 
         loss.backward()
         self.optim.step()
