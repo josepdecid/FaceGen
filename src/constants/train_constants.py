@@ -7,4 +7,4 @@ SHUFFLE_TRAIN = True
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-IMG_SIZE = 200
+GA_IMG_SIZE = 100

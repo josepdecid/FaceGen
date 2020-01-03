@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from torchvision.transforms import ToTensor
 
-from constants.train_constants import DEVICE, IMG_SIZE
+from constants.train_constants import DEVICE, GA_IMG_SIZE
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).
@@ -90,7 +90,7 @@ def cal_pop_fitness(pop, model):
     """
     This method calculates the fitness of all solutions in the population.
     """
-    images = np.reshape(pop, newshape=(pop.shape[0], 3, IMG_SIZE, IMG_SIZE))
+    images = np.reshape(pop, newshape=(pop.shape[0], 3, GA_IMG_SIZE, GA_IMG_SIZE))
     images = torch.from_numpy(images).float().to(DEVICE)
     fitness = model(images)
     return fitness.cpu().detach().numpy()

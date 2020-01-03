@@ -7,7 +7,7 @@ import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
-from dataset.FaceNoFaceDataset import FaceNoFaceDataset
+from constants.train_constants import GA_IMG_SIZE
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
 from models.evolutionary.face_classifier import FaceClassifier
@@ -54,6 +54,16 @@ def main(args):
             # Create a model for classifying between Faces or Non-Faces.
             # We use the output of this model as the fitness function of our Genetic Algorithm.
             model: FaceClassifier = FaceClassifier()
+
+            transform = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomPerspective(distortion_scale=0.1),
+                transforms.RandomRotation(degrees=5),
+                transforms.Resize(size=(GA_IMG_SIZE, GA_IMG_SIZE)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+            ])
+            dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
             if args.pretrained is None:
                 # Train model from scratch using our main dataset as positive samples and CIFAR10 as negatives.

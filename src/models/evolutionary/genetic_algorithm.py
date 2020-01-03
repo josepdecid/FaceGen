@@ -7,7 +7,7 @@ import numpy
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from constants.train_constants import DEVICE, IMG_SIZE
+from constants.train_constants import DEVICE, GA_IMG_SIZE
 from models.evolutionary import GARI
 from models.evolutionary.face_classifier import FaceClassifier
 
@@ -36,7 +36,7 @@ class GeneticAlgorithm:
         self.par = par
         self.log_tag = log_tag
 
-        self.target_shape = (3, IMG_SIZE, IMG_SIZE)
+        self.target_shape = (3, GA_IMG_SIZE, GA_IMG_SIZE)
         # Population size
         self.sol_per_pop = 75
         # Mating pool size
