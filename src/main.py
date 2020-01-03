@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from torchvision import transforms
 
 from utils.train_constants import GA_IMG_SIZE
-from dataset.UTKFaceDataset import UTKFaceDataset
+from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.evolutionary.face_classifier import FaceClassifier
 from models.evolutionary.genetic_algorithm import GeneticAlgorithm
@@ -44,7 +44,7 @@ def main(args):
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
-        dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
+        # dataset = FaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
         ################################
         # Using Genetic Algorithms (GAs)
@@ -63,7 +63,9 @@ def main(args):
                 transforms.ToTensor(),
                 transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
             ])
-            dataset = UTKFaceDataset(os.environ['DATASET_PATH'], transform=transform)
+            dataset = FaceDataset(root_positive=os.environ['DATASET_PATH'],
+                                  root_negative=os.environ['CIFAR_PATH'],
+                                  transform=transform)
 
             if args.pretrained is None:
                 # Train model from scratch using our main dataset as positive samples and CIFAR10 as negatives.

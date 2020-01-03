@@ -1,14 +1,14 @@
 from torch import nn, optim
 
 from utils.train_constants import *
-from dataset.UTKFaceDataset import UTKFaceDataset
+from dataset.FaceDataset import FaceDataset
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
 from trainers.trainer import Trainer
 
 
 class GANTrainer(Trainer):
-    def __init__(self, G: Generator, D: Discriminator, dataset: UTKFaceDataset, log_tag: str):
+    def __init__(self, G: Generator, D: Discriminator, dataset: FaceDataset, log_tag: str):
         super().__init__(dataset, log_tag)
 
         self.G = G

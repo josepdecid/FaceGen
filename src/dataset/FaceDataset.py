@@ -1,14 +1,16 @@
 import os
 from glob import glob
+
+import torch
 from torchvision import get_image_backend
 from torchvision.datasets import VisionDataset
 from PIL import Image
 
 
-class UTKFaceDataset(VisionDataset):
+class FaceDataset(VisionDataset):
     """
     Args:
-        root (string): Root directory path.
+        root_positive (string): Root directory path.
         transform (callable, optional): A function/transform that takes in
             a sample and returns a transformed version.
             E.g, ``transforms.RandomCrop`` for images.
@@ -17,12 +19,24 @@ class UTKFaceDataset(VisionDataset):
         samples (list): List of sample paths
     """
 
-    def __init__(self, root, transform=None):
-        super().__init__(root, transform=transform)
+    def __init__(self, root_positive, root_negative, transform=None):
+        super().__init__(root_positive, transform=transform)
 
-        self.samples = UTKFaceDataset.__make_dataset(self.root)
+        self.positive_samples = FaceDataset.__make_dataset(root_positive)
+        self.negative_samples = FaceDataset.__make_dataset(root_negative)
+
+        self.samples = self.positive_samples + self.negative_samples
+        self.labels = [1.0 for _ in range(len(self.positive_samples))] + \
+                      [0.2 for _ in range(len(self.negative_samples))]
+
         if len(self.samples) == 0:
-            raise RuntimeError(f'Found 0 .jpg files in {self.root}')
+            raise RuntimeError(f'Found 0 files in {self.root}')
+
+        if len(self.negative_samples):
+            print(f'Dataset loaded with {len(self.positive_samples)} positive samples'
+                  f'and {len(self.negative_samples)} negative samples')
+        else:
+            print(f'Dataset loaded with {len(self.samples)} samples')
 
     def __getitem__(self, index):
         """
@@ -36,7 +50,7 @@ class UTKFaceDataset(VisionDataset):
         sample = self.__loader(path)
         if self.transform is not None:
             sample = self.transform(sample)
-        return sample
+        return sample, self.labels[index]
 
     def __len__(self):
         return len(self.samples)
@@ -63,11 +77,11 @@ class UTKFaceDataset(VisionDataset):
             import accimage
             return accimage.Image(path)
         except IOError:
-            return UTKFaceDataset.__pil_loader(path)
+            return FaceDataset.__pil_loader(path)
 
     @staticmethod
     def __loader(path):
         if get_image_backend() == 'accimage':
-            return UTKFaceDataset.__acc_loader(path)
+            return FaceDataset.__acc_loader(path)
         else:
-            return UTKFaceDataset.__pil_loader(path)
+            return FaceDataset.__pil_loader(path)

@@ -52,7 +52,7 @@ class Trainer(ABC):
                                           img_tensor=fake_grid, global_step=iteration)
 
     @abstractmethod
-    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
+    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor, iteration: int = 0) -> None:
         pass
 
     @abstractmethod

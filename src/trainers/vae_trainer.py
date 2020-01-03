@@ -3,14 +3,14 @@ import torch
 from torch import optim, nn
 
 from utils.train_constants import DEVICE, Z_SIZE
-from dataset.UTKFaceDataset import UTKFaceDataset
+from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.autoencoder.vae_loss import MSEKLDLoss
 from trainers.trainer import Trainer
 
 
 class VAETrainer(Trainer):
-    def __init__(self, model: VAE, dataset: UTKFaceDataset, log_tag: str):
+    def __init__(self, model: VAE, dataset: FaceDataset, log_tag: str):
         super().__init__(dataset, log_tag)
 
         self.model = model
