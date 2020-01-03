@@ -42,9 +42,9 @@ class GATrainer(Trainer):
         loss.backward()
         self.optim.step()
 
-        self.writer.add_image(f'Img_{train_labels[0].cpu()}',
-                              (train_images[0].cpu().detach() + 1) / 2,
-                              global_step=iteration)
+        # self.writer.add_image(f'Img_{train_labels[0].cpu()}',
+        #                       (train_images[0].cpu().detach() + 1) / 2,
+        #                       global_step=iteration)
 
         # Set Network in evaluation mode and calculate validation loss
         # with the same images applying a different random noise.

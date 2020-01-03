@@ -1,10 +1,9 @@
 import os
 from glob import glob
 
-import torch
+from PIL import Image
 from torchvision import get_image_backend
 from torchvision.datasets import VisionDataset
-from PIL import Image
 
 
 class FaceDataset(VisionDataset):
@@ -33,7 +32,7 @@ class FaceDataset(VisionDataset):
             raise RuntimeError(f'Found 0 files in {self.root}')
 
         if len(self.negative_samples):
-            print(f'Dataset loaded with {len(self.positive_samples)} positive samples'
+            print(f'Dataset loaded with {len(self.positive_samples)} positive samples '
                   f'and {len(self.negative_samples)} negative samples')
         else:
             print(f'Dataset loaded with {len(self.samples)} samples')

@@ -24,6 +24,7 @@ class Trainer(ABC):
         for epoch_idx in range(EPOCHS):
             try:
                 self._run_epoch(epoch_idx=epoch_idx)
+                self._save_checkpoint(epoch=epoch_idx)
             except EarlyStoppingException as e:
                 print(f'Early Stopping at iteration {e.message} (epoch {epoch_idx})')
                 self._save_checkpoint(epoch=epoch_idx)
@@ -33,16 +34,12 @@ class Trainer(ABC):
 
     def _run_epoch(self, epoch_idx: int):
         num_batches = len(self.loader)
-        for batch_idx, data in enumerate(tqdm(self.loader,
-                                              total=num_batches, ncols=100,
-                                              position=0, leave=True,
-                                              desc=f'Epoch {epoch_idx:4}')):
+        for batch_idx, (images, labels) in enumerate(tqdm(self.loader,
+                                                          total=num_batches, ncols=100,
+                                                          position=0, leave=True,
+                                                          desc=f'Epoch {epoch_idx:4}')):
             iteration = epoch_idx * num_batches + batch_idx
-
-            if isinstance(data, list):
-                self._run_batch(data[0].to(DEVICE), data[1].to(DEVICE), iteration=iteration)
-            else:
-                self._run_batch(data.to(DEVICE), iteration=iteration)
+            self._run_batch(images.to(DEVICE), labels.to(DEVICE), iteration=iteration)
 
             if batch_idx % 100 == 0:
                 fake_samples = self._get_result_sample()
