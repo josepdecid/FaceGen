@@ -72,7 +72,7 @@ def main(args):
             # Run Genetic Algorithm
             model.eval()
             with torch.no_grad():
-                GA = GeneticAlgorithm(model, par=False)
+                GA = GeneticAlgorithm(model, par=False, log_tag=log_tag)
                 GA.run(dataset)
 
         ##############################################

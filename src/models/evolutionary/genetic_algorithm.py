@@ -31,20 +31,21 @@ predefined percent of genes from the parents chromosome.
 
 
 class GeneticAlgorithm:
-    def __init__(self, model: FaceClassifier, par=False):
+    def __init__(self, model: FaceClassifier, par=False, log_tag=None):
         self.model = model
         self.par = par
+        self.log_tag = log_tag
 
-        self.target_shape = (IMG_SIZE, IMG_SIZE, 3)
+        self.target_shape = (3, IMG_SIZE, IMG_SIZE)
         # Population size
         self.sol_per_pop = 75
         # Mating pool size
-        self.num_parents_mating = 10
+        self.num_parents_mating = 20
         # Mutation percentage
-        self.mutation_percent = 0.05
+        self.mutation_percent = 0.25
         # Iterations
-        self.generations = 2000
-        self.generations_until_merge = 5
+        self.generations = 1000000
+        self.generations_until_merge = 10
 
         self.writer = SummaryWriter(log_dir=os.environ['LOG_DIR'])
 
@@ -97,7 +98,7 @@ class GeneticAlgorithm:
                                                              qualities=fitness_value,
                                                              num_parents=self.num_parents_mating)
                     GARI.save_images(i, new_population, self.model, self.target_shape,
-                                     save_point=i, save_dir=os.environ['CKPT_DIR'])
+                                     save_point=i, save_dir=os.environ['CKPT_DIR'], log_tag=self.log_tag)
                     new_populations = [numpy.copy(new_population) for _ in range(cores)]
         else:
             new_population = GARI.initial_population(img_shape=self.target_shape,
@@ -108,7 +109,7 @@ class GeneticAlgorithm:
             # Display the final generation
             # GARI.show_indivs(new_population, target_shape)
             GARI.save_images(self.generations, new_population, self.model, self.target_shape,
-                             save_point=self.generations, save_dir=os.environ['CKPT_DIR'])
+                             save_point=self.generations, save_dir=os.environ['CKPT_DIR'], log_tag=self.log_tag)
 
     def _run_n_generations(self, c: int, generations: int, new_population: numpy.ndarray, lock=None):
         if lock is not None:
@@ -142,7 +143,7 @@ class GeneticAlgorithm:
             Save best individual in the generation as an image for later visualization.
             """
             GARI.save_images(generation, new_population, self.model, self.target_shape,
-                             save_point=1000, save_dir=os.environ['CKPT_DIR'])
+                             save_point=500, save_dir=os.environ['CKPT_DIR'], log_tag=self.log_tag)
 
             if lock is not None:
                 with lock:

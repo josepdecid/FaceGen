@@ -51,13 +51,19 @@ def img2chromosome(img_arr):
 
 def initial_population(img_shape, n_individuals=8, face=None):
     """Creating an initial population randomly."""
-    population = np.random.random(size=(n_individuals, IMG_SIZE * IMG_SIZE * 3)) * 2 - 1
-    population[-1,:] = img2chromosome(face)
-    # for individual in population:
-    #     img = chromosome2img(individual, img_shape=(IMG_SIZE, IMG_SIZE, 3))
-    #     # img[:]
-    #     pass
+    population = np.random.random(size=(n_individuals,
+                                        functools.reduce(operator.mul, img_shape))) * 2 - 1
+    # population[-1, :] = img2chromosome(np.resize(face, new_shape=img_shape))
+    # for i, individual in enumerate(population):
+    #     img = chromosome2img(individual, img_shape=img_shape)
+    #     img[0, IMG_SIZE//5:4*IMG_SIZE//5, IMG_SIZE//5:4*IMG_SIZE//5] = 198/255
+    #     img[1, IMG_SIZE//5:4*IMG_SIZE//5, IMG_SIZE//5:4*IMG_SIZE//5] = 134/255
+    #     img[2, IMG_SIZE//5:4*IMG_SIZE//5, IMG_SIZE//5:4*IMG_SIZE//5] = 66/255
+    #
+    #     img[:, IMG_SIZE//3: IMG_SIZE//3 + IMG_SIZE//10, IMG_SIZE//4:3*IMG_SIZE//4] = 0.25
+    #     population[i, :] = img2chromosome(img)
     return population
+
 
 def chromosome2img(chromosome, img_shape):
     """
@@ -67,17 +73,6 @@ def chromosome2img(chromosome, img_shape):
     """
     img_arr = np.reshape(a=chromosome, newshape=img_shape)
     return img_arr
-
-
-def fitness_fun(indiv_chrom, model):
-    """
-    Calculating the fitness of a single solution.
-    The fitness is basically calculated using the sum of absolute difference
-    between genes values in the original and reproduced chromosomes.
-    """
-    img = chromosome2img(indiv_chrom, (200, 200, 3))
-    fitness = model(ToTensor()(img).view(1, 3, 200, 200))
-    return fitness
 
 
 def fitness_fun_difference(target_chrom, indiv_chrom):
@@ -106,7 +101,7 @@ def select_mating_pool(pop, qualities, num_parents):
     Selects the best individuals in the current generation, according to the 
     number of parents specified, for mating and generating a new better population.
     """
-    parents = np.empty((num_parents, pop.shape[1]), dtype=np.uint8)
+    parents = np.empty((num_parents, pop.shape[1]), dtype=np.float32)
     for parent_num in range(num_parents):
         # Retrieving the best unselected solution.
         max_qual_idx = np.where(qualities == np.max(qualities))
@@ -115,7 +110,7 @@ def select_mating_pool(pop, qualities, num_parents):
         parents[parent_num, :] = pop[max_qual_idx, :]
         """
         Set quality of selected individual to a negative value to not get 
-        selected again. Algorithm calcululations will just make qualities >= 0.
+        selected again. Algorithm calculations will just make qualities >= 0.
         """
         qualities[max_qual_idx] = -1
     return parents
@@ -128,7 +123,7 @@ def crossover(parents, img_shape, n_individuals=8):
     """
     new_population = np.empty(shape=(n_individuals,
                                      functools.reduce(operator.mul, img_shape)),
-                              dtype=np.uint8)
+                              dtype=np.float32)
 
     """
     Selecting the best previous parents to be individuals in the new generation.
@@ -187,7 +182,7 @@ def mutation(population, num_parents_mating, mut_percent):
 
 
 def save_images(curr_iteration, new_population, model, im_shape,
-                save_point, save_dir):
+                save_point, save_dir, log_tag):
     """
     Saving best solution in a given generation as an image in the specified directory.
     Images are saved accoirding to stop points to avoid saving images from 
@@ -201,8 +196,12 @@ def save_images(curr_iteration, new_population, model, im_shape,
         # Decoding the selected chromosome to return it back as an image.
         best_solution_img = chromosome2img(best_solution_chrom, im_shape)
         # Saving the image in the specified directory.
-        matplotlib.pyplot.imsave(os.path.join(save_dir, f'solution_{curr_iteration}_{np.max(qualities)}.png'),
-                                 best_solution_img)
+        best_solution_img = (best_solution_img + 1) / 2
+        path = os.path.join(save_dir, f'GA_results_{log_tag}')
+        if not os.path.exists(path):
+            os.mkdir(path)
+        matplotlib.pyplot.imsave(os.path.join(path, f'solution_{curr_iteration}_{np.max(qualities)}.png'),
+                                 best_solution_img.transpose(1, 2, 0))
         # matplotlib.pyplot.imshow(best_solution_img, cmap='gray')
         # matplotlib.pyplot.show()
 
