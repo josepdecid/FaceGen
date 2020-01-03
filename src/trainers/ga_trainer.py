@@ -16,7 +16,7 @@ class GATrainer(Trainer):
 
         self.patience = len(self.loader)
         self.worse_iterations = 0
-        self.best_val_loss = 1e99
+        self.best_val_loss = None
 
         self.criterion = nn.MSELoss()
         self.optim = optim.Adam(params=self.model.parameters(), lr=0.001)
@@ -30,7 +30,7 @@ class GATrainer(Trainer):
         # Labels for regression in [0, 1]
         noise_prob = torch.rand(size=(images.size(0),))
         bernoulli = torch.distributions.Bernoulli(probs=noise_prob)
-        train_labels = (labels * (torch.ones_like(noise_prob) - noise_prob)).to(DEVICE)
+        train_labels = labels * (torch.ones_like(noise_prob) - noise_prob).to(DEVICE)
 
         noise = (torch.rand(size=(images.size())) * 2 - 1).to(DEVICE)
         mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2).to(DEVICE)
@@ -42,9 +42,9 @@ class GATrainer(Trainer):
         loss.backward()
         self.optim.step()
 
-        # self.writer.add_image(f'Img_{labels[0].cpu()}',
-        #                       (train_images[0].cpu().detach() + 1) / 2,
-        #                       global_step=iteration)
+        self.writer.add_image(f'Img_{train_labels[0].cpu()}',
+                              (train_images[0].cpu().detach() + 1) / 2,
+                              global_step=iteration)
 
         # Set Network in evaluation mode and calculate validation loss
         # with the same images applying a different random noise.
@@ -52,7 +52,7 @@ class GATrainer(Trainer):
         with torch.no_grad():
             noise_prob = torch.rand(size=(images.size(0),))
             bernoulli = torch.distributions.Bernoulli(probs=noise_prob)
-            val_labels = (labels * (torch.ones_like(noise_prob) - noise_prob)).to(DEVICE)
+            val_labels = labels * (torch.ones_like(noise_prob) - noise_prob).to(DEVICE)
 
             noise = (torch.rand(size=(images.size())) * 2 - 1).to(DEVICE)
             mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2).to(DEVICE)
@@ -67,7 +67,7 @@ class GATrainer(Trainer):
                                 global_step=iteration)
 
         # Early Stopping
-        if val_loss < self.best_val_loss:
+        if self.best_val_loss is None or val_loss < self.best_val_loss:
             self.best_val_loss = val_loss
             self.worse_iterations = 0
         else:

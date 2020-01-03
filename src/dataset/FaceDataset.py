@@ -62,6 +62,8 @@ class FaceDataset(VisionDataset):
         print(path)
         for f_path in glob(os.path.join(path, '*.jpg')):
             images.append(f_path)
+        for f_path in glob(os.path.join(path, '*.png')):
+            images.append(f_path)
         return images
 
     @staticmethod
