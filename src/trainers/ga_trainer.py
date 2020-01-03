@@ -14,15 +14,16 @@ class GATrainer(Trainer):
         self.model = model
 
         self.criterion = nn.MSELoss()
-        self.optim = optim.Adam(params=self.model.parameters(), lr=0.01)
+        self.optim = optim.Adam(params=self.model.parameters(), lr=0.001)
 
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         self.model.zero_grad()
 
-        labels = torch.rand(size=(images.size(0),))
-        images += torch.tensordot(a=(torch.ones_like(labels) - labels).view(-1, 1),
-                                  b=torch.rand(size=images.size(), device=DEVICE),
+        noise = torch.rand(size=(images.size(0),)) * 2 - 1
+        images += torch.tensordot(a=noise.view(-1, 1),
+                                  b=torch.rand(size=images.size()),
                                   dims=1).to(DEVICE)
+        labels = (torch.ones_like(noise) - torch.abs(noise)).to(DEVICE)
 
         pred = self.model(images)
         loss = self.criterion(pred, labels)
@@ -30,10 +31,10 @@ class GATrainer(Trainer):
         loss.backward()
         self.optim.step()
 
-        accuracy = 100 * (pred > 0.5).eq(labels).sum() / images.size(0)
-
         self.writer.add_scalar(f'({self.log_tag}) Loss', loss, iteration)
-        self.writer.add_scalar(f'({self.log_tag}) Accuracy', accuracy, iteration)
+        # self.writer.add_image(f'Img_{labels[0].cpu()}',
+        #                       (images[0].cpu().detach() + 1) / 2,
+        #                       global_step=iteration)
 
     def _init_model(self):
         # Send network to the corresponding device (GPU or CPU)
@@ -43,7 +44,11 @@ class GATrainer(Trainer):
         self.model.train()
 
     def _save_checkpoint(self, epoch: int):
-        save_path = os.path.join(os.environ['CKPT_DIR'], f'{self.log_tag}_{epoch}.pt')
+        path = os.path.join(os.environ['CKPT_DIR'], f'GA_{self.log_tag}')
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        save_path = os.path.join(path, f'{epoch}.pt')
         torch.save(self.model.state_dict(), save_path)
 
     def _get_result_sample(self):
