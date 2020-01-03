@@ -32,7 +32,7 @@ class FaceClassifier(nn.Module):
             nn.ReLU(),
 
             nn.Linear(in_features=50, out_features=1),
-            nn.Softmax(dim=0)
+            nn.Sigmoid()
         )
 
     def forward(self, x):
