@@ -1,6 +1,6 @@
 from torch import nn
 
-from constants.train_constants import Z_SIZE
+from utils.train_constants import Z_SIZE
 
 
 class Generator(nn.Module):

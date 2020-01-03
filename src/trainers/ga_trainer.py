@@ -2,10 +2,10 @@ import os
 
 from torch import nn, optim
 
-from constants.train_constants import *
+from utils.train_constants import *
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.evolutionary.face_classifier import FaceClassifier
-from trainers.trainer import Trainer
+from trainers.trainer import Trainer, EarlyStoppingException
 
 
 class GATrainer(Trainer):
@@ -13,6 +13,10 @@ class GATrainer(Trainer):
         super().__init__(dataset, log_tag)
 
         self.model = model
+
+        self.patience = len(self.loader)
+        self.worse_iterations = 0
+        self.best_val_loss = 1e99
 
         self.criterion = nn.MSELoss()
         self.optim = optim.Adam(params=self.model.parameters(), lr=0.001)
@@ -59,6 +63,15 @@ class GATrainer(Trainer):
         self.writer.add_scalars('Loss values',
                                 {'Train': loss, 'Validation': val_loss},
                                 global_step=iteration)
+
+        # Early Stopping
+        if val_loss < self.best_val_loss:
+            self.best_val_loss = val_loss
+            self.worse_iterations = 0
+        else:
+            self.worse_iterations += 1
+            if self.worse_iterations >= self.patience:
+                raise EarlyStoppingException(f'Early Stopping at Iteration {iteration}')
 
     def _init_model(self):
         # Send network to the corresponding device (GPU or CPU)

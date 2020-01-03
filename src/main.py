@@ -7,7 +7,7 @@ import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
-from constants.train_constants import GA_IMG_SIZE
+from utils.train_constants import GA_IMG_SIZE
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
 from models.evolutionary.face_classifier import FaceClassifier

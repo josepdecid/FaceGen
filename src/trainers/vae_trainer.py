@@ -2,7 +2,7 @@ import os
 import torch
 from torch import optim, nn
 
-from constants.train_constants import DEVICE, Z_SIZE
+from utils.train_constants import DEVICE, Z_SIZE
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.autoencoder.vae import VAE
 from models.autoencoder.vae_loss import MSEKLDLoss

@@ -1,6 +1,6 @@
 from torch import nn, optim
 
-from constants.train_constants import *
+from utils.train_constants import *
 from dataset.UTKFaceDataset import UTKFaceDataset
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator

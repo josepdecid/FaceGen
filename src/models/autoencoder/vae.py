@@ -79,7 +79,7 @@ from torch import nn
 #         std = log_var.mul(0.5).exp_()
 #         eps = std.data.new(std.size()).normal_()
 #         return eps.mul(std).add_(mu)
-from constants.train_constants import Z_SIZE
+from utils.train_constants import Z_SIZE
 
 
 class VAE(nn.Module):

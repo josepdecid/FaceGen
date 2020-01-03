@@ -7,7 +7,7 @@ import numpy
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from constants.train_constants import DEVICE, GA_IMG_SIZE
+from utils.train_constants import DEVICE, GA_IMG_SIZE
 from models.evolutionary import GARI
 from models.evolutionary.face_classifier import FaceClassifier
 

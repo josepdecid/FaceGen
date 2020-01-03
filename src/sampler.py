@@ -1,6 +1,6 @@
 import torch
 
-from constants.train_constants import DEVICE, Z_SIZE
+from utils.train_constants import DEVICE, Z_SIZE
 from models.gan.Generator import Generator
 
 

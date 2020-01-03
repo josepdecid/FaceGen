@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from torchvision.transforms import ToTensor
 
-from constants.train_constants import DEVICE, GA_IMG_SIZE
+from utils.train_constants import DEVICE, GA_IMG_SIZE
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).

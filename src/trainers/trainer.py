@@ -7,7 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import VisionDataset
 from tqdm import tqdm
 
-from constants.train_constants import *
+from utils.train_constants import *
 
 
 class Trainer(ABC):
@@ -22,7 +22,12 @@ class Trainer(ABC):
         self._init_model()
 
         for epoch_idx in range(EPOCHS):
-            self._run_epoch(epoch_idx=epoch_idx)
+            try:
+                self._run_epoch(epoch_idx=epoch_idx)
+            except EarlyStoppingException as e:
+                print(f'Early Stopping at iteration {e.message} (epoch {epoch_idx})')
+                self._save_checkpoint(epoch=epoch_idx)
+                break
 
         self.writer.close()
 
@@ -46,8 +51,6 @@ class Trainer(ABC):
                     self.writer.add_image(f'Iteration {iteration} generation',
                                           img_tensor=fake_grid, global_step=iteration)
 
-        self._save_checkpoint(epoch=epoch_idx)
-
     @abstractmethod
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor = None, iteration: int = 0) -> None:
         pass
@@ -63,3 +66,15 @@ class Trainer(ABC):
     @abstractmethod
     def _save_checkpoint(self, epoch: int):
         pass
+
+
+class EarlyStoppingException(Exception):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+
+    def __init__(self, iteration):
+        self.message = iteration
