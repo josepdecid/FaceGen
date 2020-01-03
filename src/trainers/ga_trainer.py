@@ -22,13 +22,13 @@ class GATrainer(Trainer):
         self.model.zero_grad()
 
         # Labels for regression in [0, 1]
-        labels = torch.rand(size=(images.size(0),))
-        noise = torch.rand(size=(images.size())) * 2 - 1
-        bernoulli = torch.distributions.Bernoulli(probs=labels)
-        mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2)
+        noise_prob = torch.rand(size=(images.size(0),))
+        bernoulli = torch.distributions.Bernoulli(probs=noise_prob)
+        labels = (torch.ones_like(noise_prob) - noise_prob).to(DEVICE)
 
-        train_images = torch.where(mask, images, noise).to(DEVICE)
-        labels = labels.to(DEVICE)
+        noise = (torch.rand(size=(images.size())) * 2 - 1).to(DEVICE)
+        mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2).to(DEVICE)
+        train_images = torch.where(mask.bool(), noise, images)
 
         pred = self.model(train_images)
         loss = self.criterion(pred, labels)
@@ -44,13 +44,13 @@ class GATrainer(Trainer):
         # with the same images applying a different random noise.
         self.model.eval()
         with torch.no_grad():
-            labels = torch.rand(size=(images.size(0),))
-            noise = torch.rand(size=(images.size())) * 2 - 1
-            bernoulli = torch.distributions.Bernoulli(probs=labels)
-            mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2)
+            noise_prob = torch.rand(size=(images.size(0),))
+            bernoulli = torch.distributions.Bernoulli(probs=noise_prob)
+            labels = (torch.ones_like(noise_prob) - noise_prob).to(DEVICE)
 
-            val_images = torch.where(mask, images, noise).to(DEVICE)
-            labels = labels.to(DEVICE)
+            noise = (torch.rand(size=(images.size())) * 2 - 1).to(DEVICE)
+            mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2).to(DEVICE)
+            val_images = torch.where(mask.bool(), noise, images)
 
             pred = self.model(val_images)
             val_loss = self.criterion(pred, labels)
