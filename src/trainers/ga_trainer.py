@@ -21,11 +21,14 @@ class GATrainer(Trainer):
         self.model.train()
         self.model.zero_grad()
 
-        noise = torch.rand(size=(images.size(0),)) * 2 - 1
-        train_images = images + torch.tensordot(a=noise.view(-1, 1),
-                                                b=torch.rand(size=images.size()),
-                                                dims=1).to(DEVICE)
-        labels = (torch.ones_like(noise) - torch.abs(noise)).to(DEVICE)
+        # Labels for regression in [0, 1]
+        labels = torch.rand(size=(images.size(0),))
+        noise = torch.rand(size=(images.size())) * 2 - 1
+        bernoulli = torch.distributions.Bernoulli(probs=labels)
+        mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2)
+
+        train_images = torch.where(mask, images, noise).to(DEVICE)
+        labels = labels.to(DEVICE)
 
         pred = self.model(train_images)
         loss = self.criterion(pred, labels)
@@ -34,18 +37,20 @@ class GATrainer(Trainer):
         self.optim.step()
 
         # self.writer.add_image(f'Img_{labels[0].cpu()}',
-        #                       (images[0].cpu().detach() + 1) / 2,
+        #                       (train_images[0].cpu().detach() + 1) / 2,
         #                       global_step=iteration)
 
         # Set Network in evaluation mode and calculate validation loss
         # with the same images applying a different random noise.
         self.model.eval()
         with torch.no_grad():
-            noise = torch.rand(size=(images.size(0),)) * 2 - 1
-            val_images = images + torch.tensordot(a=noise.view(-1, 1),
-                                                  b=torch.rand(size=images.size()),
-                                                  dims=1).to(DEVICE)
-            labels = (torch.ones_like(noise) - torch.abs(noise)).to(DEVICE)
+            labels = torch.rand(size=(images.size(0),))
+            noise = torch.rand(size=(images.size())) * 2 - 1
+            bernoulli = torch.distributions.Bernoulli(probs=labels)
+            mask = bernoulli.sample(sample_shape=images[0].size()).permute(3, 0, 1, 2)
+
+            val_images = torch.where(mask, images, noise).to(DEVICE)
+            labels = labels.to(DEVICE)
 
             pred = self.model(val_images)
             val_loss = self.criterion(pred, labels)
