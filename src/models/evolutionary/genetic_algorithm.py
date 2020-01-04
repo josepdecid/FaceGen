@@ -38,11 +38,11 @@ class GeneticAlgorithm:
 
         self.target_shape = (3, GA_IMG_SIZE, GA_IMG_SIZE)
         # Population size
-        self.sol_per_pop = 75
+        self.sol_per_pop = 100
         # Mating pool size
-        self.num_parents_mating = 20
+        self.num_parents_mating = 25
         # Mutation percentage
-        self.mutation_percent = 0.25
+        self.mutation_percent = 10.0
         # Iterations
         self.generations = 1000000
         self.generations_until_merge = 10

@@ -171,13 +171,15 @@ def mutation(population, num_parents_mating, mut_percent):
     Values of the randomly selected genes are changed randomly.
     """
     for idx in range(num_parents_mating, population.shape[0]):
-        # A predefined percent of genes are selected randomly.
-        rand_idx = np.uint32(np.random.random(size=np.uint32(mut_percent / 100 * population.shape[1]))
-                             * population.shape[1])
-        # Changing the values of the selected genes randomly.
-        new_values = np.random.random(size=rand_idx.shape[0]) * 2 - 1
-        # Updating population after mutation.
-        population[idx, rand_idx] = new_values
+        if np.random.random() < 0.6:
+            # A predefined percent of genes are selected randomly.
+            rand_idx = np.uint32(np.random.random(size=np.uint32(mut_percent / 100 * population.shape[1]))
+                                 * population.shape[1])
+            # Changing the values of the selected genes randomly.
+            new_values = np.random.random(size=rand_idx.shape[0]) * 2 - 1
+            # new_values = np.random.normal(loc=0.0, scale=1.0, size=rand_idx.shape[0])
+            # Updating population after mutation.
+            population[idx, rand_idx] = new_values
     return population
 
 

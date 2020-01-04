@@ -14,7 +14,7 @@ class GATrainer(Trainer):
 
         self.model = model
 
-        self.patience = len(self.loader)
+        self.patience = 2 * len(self.loader)
         self.worse_iterations = 0
         self.best_val_loss = None
 
