@@ -104,10 +104,10 @@ def crossover(parents, n_individuals=8):
 
         # Applying crossover by exchanging half of the genes between two parents.
         half_size = new_population.size(1) // 2
-        new_population[comb_idx + comb, 0:half_size] = parents[selected_comb[0],
-                                                       0:half_size]
-        new_population[comb_idx + comb, half_size:] = parents[selected_comb[1],
-                                                      half_size:]
+        crossover_point = torch.empty(1).normal_(mean=half_size, std=half_size)
+        crossover_point = int(crossover_point.clamp(min=0, max=new_population.size(1)))
+        new_population[comb_idx + comb, :crossover_point] = parents[selected_comb[0], :crossover_point]
+        new_population[comb_idx + comb, crossover_point:] = parents[selected_comb[1], crossover_point:]
 
     return new_population
 
@@ -118,7 +118,7 @@ def mutation(population, num_parents_mating, mut_percent):
     Values of the randomly selected genes are changed randomly.
     """
     for idx in range(num_parents_mating, population.size(0)):
-        if random.random() < 0.6:
+        if random.random() < 0.9:
             # A predefined percent of genes are selected randomly.
             rand_selected_idx = int(mut_percent * population.size(1))
             rand_idx = torch.randint(size=(rand_selected_idx,), low=0, high=population.size(1))
@@ -136,9 +136,10 @@ def save_images(curr_iteration, new_population, model, save_point, save_dir, log
     Images are saved according to stop points to avoid saving images from
     all generations as saving many images will make the algorithm slow.
     """
-    qualities = cal_pop_fitness(new_population, model)
+
     if np.mod(curr_iteration, save_point) == 0:
         # Selecting best solution (chromosome) in the generation.
+        qualities = cal_pop_fitness(new_population, model)
         best_solution_chromosome = new_population[torch.argmax(qualities), :]
         # Decoding the selected chromosome to return it back as an image.
         best_solution_img = best_solution_chromosome.view(3, GA_IMG_SIZE, GA_IMG_SIZE)
