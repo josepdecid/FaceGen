@@ -8,7 +8,7 @@ import torch
 from torchvision.transforms import Normalize
 
 from models.evolutionary.face_classifier import FaceClassifier
-from utils.train_constants import GA_IMG_SIZE
+from utils.train_constants import GA_IMG_SIZE, DEVICE
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).
@@ -26,11 +26,6 @@ Value encoding used for representing the input.
 Crossover is applied by exchanging half of genes from two parents.
 Mutation is applied by randomly changing the values of randomly selected 
 predefined percent of genes from the parents chromosome.
-
-This project is implemented using Python 3.5 by Ahmed F. Gad.
-Contact info:
-ahmed.fawzy@ci.menofia.edu.eg
-https://www.linkedin.com/in/ahmedfgad/
 """
 
 
@@ -43,9 +38,11 @@ def cal_pop_fitness(pop: torch.Tensor, model: FaceClassifier):
     """
     This method calculates the fitness of all solutions in the population.
     """
-    images = pop.view(pop.size(0), 3, GA_IMG_SIZE, GA_IMG_SIZE)
-    normalized_images = Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))(images.float() / 255.0)
-    fitness = model(normalized_images)
+    images = pop.view(pop.size(0), 3, GA_IMG_SIZE, GA_IMG_SIZE).float() / 255.0
+    normalizer = Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    for i in range(images.size(0)):
+        images[i, :, :, :] = normalizer(images[i, :, :, :])
+    fitness = model(images.to(DEVICE))
     return fitness.cpu().detach()
 
 
@@ -121,15 +118,15 @@ def mutation(population, num_parents_mating, mut_percent):
     Values of the randomly selected genes are changed randomly.
     """
     for idx in range(num_parents_mating, population.size(0)):
-        if torch.rand() < 0.6:
+        if random.random() < 0.6:
             # A predefined percent of genes are selected randomly.
-            rand_selected_idx = mut_percent * population.size(1)
-            rand_idx = torch.randint(size=(rand_selected_idx,), low=0, high=256)
+            rand_selected_idx = int(mut_percent * population.size(1))
+            rand_idx = torch.randint(size=(rand_selected_idx,), low=0, high=population.size(1))
             # Changing the values of the selected genes randomly.
             new_values = torch.randint(size=(rand_idx.size(0),), low=0, high=256)
             # new_values = np.random.normal(loc=0.0, scale=1.0, size=rand_idx.size(0])
             # Updating population after mutation.
-            population[idx, rand_idx] = new_values
+            population[idx, rand_idx] = new_values.type(torch.uint8)
     return population
 
 
@@ -149,5 +146,5 @@ def save_images(curr_iteration, new_population, model, save_point, save_dir, log
         path = os.path.join(save_dir, f'GA_results_{log_tag}')
         if not os.path.exists(path):
             os.mkdir(path)
-        plt.imsave(os.path.join(path, f'solution_{curr_iteration}_{np.max(qualities)}.jpg'),
-                   best_solution_img.transpose(1, 2, 0))
+        plt.imsave(os.path.join(path, f'solution_{curr_iteration}_{torch.max(qualities)}.jpg'),
+                   best_solution_img.permute(1, 2, 0).numpy())
