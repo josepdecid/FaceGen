@@ -42,7 +42,7 @@ class GeneticAlgorithm:
         # Mating pool size
         self.num_parents_mating = 25
         # Mutation percentage
-        self.mutation_percent = 10.0
+        self.mutation_percent = 0.10
         # Iterations
         self.generations = 1000000
         self.generations_until_merge = 10
@@ -58,14 +58,13 @@ class GeneticAlgorithm:
         if required_perm > possible_perm:
             raise AttributeError('Inconsistency in the selected population size or number of parents.')
 
-    def run(self, dataset):
+    def run(self):
         self.model = self.model.to(DEVICE)
 
         if self.par:
             # Creating an initial population randomly.
             cores = multiprocessing.cpu_count()
-            new_populations = [GARI.initial_population(img_shape=self.target_shape,
-                                                       n_individuals=self.sol_per_pop) for _ in range(cores)]
+            new_populations = [GARI.initial_population(n_individuals=self.sol_per_pop) for _ in range(cores)]
 
             for i in range(1, self.generations // self.generations_until_merge + 1):
                 pool = ThreadPool(cores)
@@ -94,21 +93,19 @@ class GeneticAlgorithm:
                     next_merged_population = numpy.concatenate(next_populations, axis=0)
 
                     fitness_value = GARI.cal_pop_fitness(next_merged_population, model=self.model)
-                    new_population = GARI.select_mating_pool(pop=next_merged_population,
+                    new_population = GARI.select_mating_pool(population=next_merged_population,
                                                              qualities=fitness_value,
                                                              num_parents=self.num_parents_mating)
-                    GARI.save_images(i, new_population, self.model, self.target_shape,
+                    GARI.save_images(i, new_population, self.model,
                                      save_point=i, save_dir=os.environ['CKPT_DIR'], log_tag=self.log_tag)
                     new_populations = [numpy.copy(new_population) for _ in range(cores)]
         else:
-            new_population = GARI.initial_population(img_shape=self.target_shape,
-                                                     n_individuals=self.sol_per_pop,
-                                                     face=dataset[0])
+            new_population = GARI.initial_population(n_individuals=self.sol_per_pop)
 
             new_population, _ = self._run_n_generations(0, self.generations, new_population)
             # Display the final generation
             # GARI.show_indivs(new_population, target_shape)
-            GARI.save_images(self.generations, new_population, self.model, self.target_shape,
+            GARI.save_images(self.generations, new_population, self.model,
                              save_point=self.generations, save_dir=os.environ['CKPT_DIR'], log_tag=self.log_tag)
 
     def _run_n_generations(self, c: int, generations: int, new_population: numpy.ndarray, lock=None):
@@ -126,13 +123,12 @@ class GeneticAlgorithm:
             # print(f'Fitness : {numpy.max(fitness_value)}, Iteration : {generation}')
 
             # Selecting the best parents in the population for mating.
-            parents = GARI.select_mating_pool(pop=new_population,
+            parents = GARI.select_mating_pool(population=new_population,
                                               qualities=fitness_value,
                                               num_parents=self.num_parents_mating)
 
             # Generating next generation using crossover.
             new_population = GARI.crossover(parents,
-                                            img_shape=self.target_shape,
                                             n_individuals=self.sol_per_pop)
 
             new_population = GARI.mutation(population=new_population,
@@ -142,7 +138,7 @@ class GeneticAlgorithm:
             """
             Save best individual in the generation as an image for later visualization.
             """
-            GARI.save_images(generation, new_population, self.model, self.target_shape,
+            GARI.save_images(generation, new_population, self.model,
                              save_point=500, save_dir=os.environ['CKPT_DIR'], log_tag=self.log_tag)
 
             if lock is not None:
