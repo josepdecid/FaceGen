@@ -18,11 +18,14 @@ class FaceDataset(VisionDataset):
         samples (list): List of sample paths
     """
 
-    def __init__(self, root_positive, root_negative, transform=None):
+    def __init__(self, root_positive, root_negative=None, transform=None):
         super().__init__(root_positive, transform=transform)
 
         self.positive_samples = FaceDataset.__make_dataset(root_positive)
-        self.negative_samples = FaceDataset.__make_dataset(root_negative)
+        if root_negative is None:
+            self.negative_samples = []
+        else:
+            self.negative_samples = FaceDataset.__make_dataset(root_negative)
 
         self.samples = self.positive_samples + self.negative_samples
         self.labels = [1.0 for _ in range(len(self.positive_samples))] + \

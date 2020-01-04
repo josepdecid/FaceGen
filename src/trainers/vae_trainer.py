@@ -58,5 +58,9 @@ class VAETrainer(Trainer):
         return fake_images
 
     def _save_checkpoint(self, epoch: int):
-        save_path = os.path.join(os.environ["CKPT_DIR"], f'VAE_{self.log_tag}_{epoch}.pt')
+        path = os.path.join(os.environ['CKPT_DIR'], f'VAE_{self.log_tag}')
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        save_path = os.path.join(path, f'{epoch}.pt')
         torch.save(self.model.state_dict(), save_path)

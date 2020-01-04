@@ -87,21 +87,35 @@ def main(args):
                 GA = GeneticAlgorithm(model, par=False, log_tag=log_tag)
                 GA.run()
 
+            return
+
         ##############################################
         # Using Generative Adversarial Networks (GANs)
         ##############################################
 
-        elif args.model == 'GAN':
+        transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomPerspective(distortion_scale=0.1, p=0.2),
+            transforms.RandomRotation(degrees=10),
+            transforms.Resize(size=(GA_IMG_SIZE, GA_IMG_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])
+        dataset = FaceDataset(os.environ['DATASET_PATH'], transform=transform)
+
+        if args.model == 'GAN':
             G = Generator()
             D = Discriminator()
             trainer = GANTrainer(G=G, D=D, dataset=dataset, log_tag=log_tag)
             trainer.train()
 
+            return
+
         ########################################
         # Using Variational Auto Encoders (VAEs)
         ########################################
 
-        else:
+        if args.model == 'VAE':
             model = VAE()
             trainer = VAETrainer(model=model, dataset=dataset, log_tag=log_tag)
             trainer.train()

@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 tensorboard = "*"
+flask = "*"
 
 [packages]
 torch = "*"
