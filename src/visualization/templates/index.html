@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hello Bulma!</title>
+    <title>FaceGen - MAI-CI</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
 </head>
@@ -11,7 +11,7 @@
 <nav class="navbar" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
         <a class="navbar-item" href="https://jdecid.github.io/MAI-CI-Project/">
-            <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
+            <strong>FaceGen</strong>
         </a>
 
         <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false"
@@ -45,8 +45,9 @@
             <button class="button is-primary">Generate Image</button>
         </div>
     </form>
-    <div>
-        <img src="{{url_for('static', filename='sample.jpg')}}">
+    <br>
+    <div class="item">
+        <img src="data:image/png;base64,{{img}}" style="width: 500px; height: auto;">
     </div>
 </div>
 </body>
