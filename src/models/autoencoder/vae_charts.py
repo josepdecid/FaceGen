@@ -8,7 +8,7 @@ from torchvision import transforms
 
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
-from utils.train_constants import DEVICE, Z_SIZE, GA_IMG_SIZE
+from utils.train_constants import DEVICE, VAE_Z_SIZE, IMG_SIZE
 
 SAMPLES = 5
 
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     model.eval()
 
     transform = transforms.Compose([
-        transforms.Resize(size=(GA_IMG_SIZE, GA_IMG_SIZE)),
+        transforms.Resize(size=(IMG_SIZE, IMG_SIZE)),
         transforms.ToTensor(),
         transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
     ])
@@ -32,7 +32,7 @@ if __name__ == '__main__':
                          figsize=(4 * SAMPLES, 2 * len(models_path)))
     plt.tight_layout(pad=0, h_pad=0, w_pad=0)
 
-    latent = torch.randn(size=(SAMPLES, Z_SIZE)).to(DEVICE)
+    latent = torch.randn(size=(SAMPLES, VAE_Z_SIZE)).to(DEVICE)
 
     real_samples_disp = (255 * ((real_samples + 1) / 2)).permute(0, 2, 3, 1).numpy()
     for j in range(SAMPLES):

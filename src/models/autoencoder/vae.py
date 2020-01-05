@@ -3,7 +3,7 @@ from typing import Tuple
 import torch
 from torch import nn
 
-from utils.train_constants import Z_SIZE, GA_IMG_SIZE
+from utils.train_constants import VAE_Z_SIZE, IMG_SIZE
 
 
 class VAE(nn.Module):
@@ -42,11 +42,11 @@ class VAE(nn.Module):
             nn.ReLU(),
         )
 
-        self.mu_encoder = nn.Linear(300, Z_SIZE)
-        self.log_var_encoder = nn.Linear(300, Z_SIZE)
+        self.mu_encoder = nn.Linear(300, VAE_Z_SIZE)
+        self.log_var_encoder = nn.Linear(300, VAE_Z_SIZE)
 
         self.linear_decoder = nn.Sequential(
-            nn.Linear(in_features=Z_SIZE, out_features=512 * 5 * 5),
+            nn.Linear(in_features=VAE_Z_SIZE, out_features=512 * 5 * 5),
             nn.BatchNorm1d(512 * 5 * 5),
             nn.LeakyReLU(negative_slope=0.2)
         )
@@ -84,7 +84,7 @@ class VAE(nn.Module):
         x = self.linear_decoder(x)
         x = x.view(-1, 512, 5, 5)
         x = self.conv_decoder(x)
-        return x.view(-1, 3, GA_IMG_SIZE, GA_IMG_SIZE)
+        return x.view(-1, 3, IMG_SIZE, IMG_SIZE)
 
     @staticmethod
     def parametrize(mu, log_var):

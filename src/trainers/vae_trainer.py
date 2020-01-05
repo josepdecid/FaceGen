@@ -7,7 +7,7 @@ from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.autoencoder.vae_loss import MSEKLDLoss
 from trainers.trainer import Trainer, EarlyStoppingException
-from utils.train_constants import DEVICE, Z_SIZE
+from utils.train_constants import DEVICE, VAE_Z_SIZE
 
 import torchvision.utils as vutils
 
@@ -88,7 +88,7 @@ class VAETrainer(Trainer):
             self.writer.add_image(f'Reconstructed Val. Images', img_tensor=reconstructed_grid, global_step=iteration)
 
             # Generate 12 random samples
-            latent = torch.randn(size=(12, Z_SIZE)).to(DEVICE)
+            latent = torch.randn(size=(12, VAE_Z_SIZE)).to(DEVICE)
             output = self.model.decode(latent)
             fake_samples = (output.cpu() + 1) / 2
 

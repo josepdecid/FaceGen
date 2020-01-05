@@ -7,7 +7,7 @@ import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
-from utils.train_constants import GA_IMG_SIZE, BATCH_SIZE
+from utils.train_constants import IMG_SIZE, BATCH_SIZE
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.evolutionary.face_classifier import FaceClassifier
@@ -48,7 +48,7 @@ def main(args):
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomPerspective(distortion_scale=0.1),
                 transforms.RandomRotation(degrees=5),
-                transforms.Resize(size=(GA_IMG_SIZE, GA_IMG_SIZE)),
+                transforms.Resize(size=(IMG_SIZE, IMG_SIZE)),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
             ])
@@ -86,7 +86,7 @@ def main(args):
             transforms.RandomHorizontalFlip(),
             transforms.RandomPerspective(distortion_scale=0.1, p=0.2),
             transforms.RandomRotation(degrees=10),
-            transforms.Resize(size=(GA_IMG_SIZE, GA_IMG_SIZE)),
+            transforms.Resize(size=(IMG_SIZE, IMG_SIZE)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])

@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 
 from models.autoencoder.vae import VAE
-from utils.train_constants import Z_SIZE, DEVICE
+from utils.train_constants import VAE_Z_SIZE, DEVICE
 
 app = Flask(__name__)
 
@@ -25,7 +25,7 @@ def generate_sample():
     model = model.to(DEVICE)
     model.eval()
     with torch.no_grad():
-        latent = torch.randn(size=(SAMPLES * SAMPLES, Z_SIZE)).to(DEVICE)
+        latent = torch.randn(size=(SAMPLES * SAMPLES, VAE_Z_SIZE)).to(DEVICE)
         fake_images = model.decode(latent).cpu().detach()
         fake_images = 255 * ((fake_images + 1) / 2)
         fake_images = fake_images.permute(0, 2, 3, 1).numpy()

@@ -1,13 +1,13 @@
 from torch import nn
 
-from utils.train_constants import Z_SIZE
+from utils.train_constants import VAE_Z_SIZE
 
 
 class Generator(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.linear = nn.Linear(in_features=Z_SIZE, out_features=512 * 5 * 5)
+        self.linear = nn.Linear(in_features=VAE_Z_SIZE, out_features=512 * 5 * 5)
 
         self.conv_transposed = nn.Sequential(
             nn.BatchNorm2d(512),

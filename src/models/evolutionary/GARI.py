@@ -8,7 +8,7 @@ import torch
 from torchvision.transforms import Normalize
 
 from models.evolutionary.face_classifier import FaceClassifier
-from utils.train_constants import GA_IMG_SIZE, DEVICE
+from utils.train_constants import IMG_SIZE, DEVICE
 
 """
 This work introduces a simple project called GARI (Genetic Algorithm for Reproducing Images).
@@ -31,14 +31,14 @@ predefined percent of genes from the parents chromosome.
 
 def initial_population(n_individuals=8):
     """Creating an initial population randomly."""
-    return torch.randint(size=(n_individuals, 3 * GA_IMG_SIZE * GA_IMG_SIZE), low=0, high=256)
+    return torch.randint(size=(n_individuals, 3 * IMG_SIZE * IMG_SIZE), low=0, high=256)
 
 
 def cal_pop_fitness(pop: torch.Tensor, model: FaceClassifier):
     """
     This method calculates the fitness of all solutions in the population.
     """
-    images = pop.view(pop.size(0), 3, GA_IMG_SIZE, GA_IMG_SIZE).float() / 255.0
+    images = pop.view(pop.size(0), 3, IMG_SIZE, IMG_SIZE).float() / 255.0
     normalizer = Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
     for i in range(images.size(0)):
         images[i, :, :, :] = normalizer(images[i, :, :, :])
@@ -70,7 +70,7 @@ def crossover(parents, n_individuals=8):
     Applying crossover operation to the set of currently selected parents to 
     create a new generation.
     """
-    new_population = torch.empty(size=(n_individuals, 3 * GA_IMG_SIZE * GA_IMG_SIZE), dtype=torch.uint8)
+    new_population = torch.empty(size=(n_individuals, 3 * IMG_SIZE * IMG_SIZE), dtype=torch.uint8)
 
     """
     Selecting the best previous parents to be individuals in the new generation.
@@ -142,7 +142,7 @@ def save_images(curr_iteration, new_population, model, save_point, save_dir, log
         qualities = cal_pop_fitness(new_population, model)
         best_solution_chromosome = new_population[torch.argmax(qualities), :]
         # Decoding the selected chromosome to return it back as an image.
-        best_solution_img = best_solution_chromosome.view(3, GA_IMG_SIZE, GA_IMG_SIZE)
+        best_solution_img = best_solution_chromosome.view(3, IMG_SIZE, IMG_SIZE)
         # Saving the image in the specified directory.
         path = os.path.join(save_dir, f'GA_results_{log_tag}')
         if not os.path.exists(path):

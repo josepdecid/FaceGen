@@ -40,7 +40,7 @@ class GANTrainer(Trainer):
         loss_real_D = self.criterion(prediction, true_labels)
         loss_real_D.backward()
 
-        noise = torch.randn(size=(b_size, Z_SIZE), device=DEVICE)
+        noise = torch.randn(size=(b_size, VAE_Z_SIZE), device=DEVICE)
         fake_images = self.G(noise) + 0.05 * torch.randn(size=(b_size, 3, 200, 200), device=DEVICE)
 
         prediction = self.D(fake_images.detach()).view(-1)
@@ -84,7 +84,7 @@ class GANTrainer(Trainer):
         samples = []
         with torch.no_grad():
             for _ in range(9):
-                noise = torch.randn(size=(1, Z_SIZE), device=DEVICE)
+                noise = torch.randn(size=(1, VAE_Z_SIZE), device=DEVICE)
                 output = self.G(noise).squeeze()
                 fake_image = (output - output.min()) / (output.max() - output.min())
                 samples.append(fake_image)

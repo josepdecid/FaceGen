@@ -3,7 +3,7 @@ from typing import Tuple
 import torch
 from torch import nn
 
-from utils.train_constants import Z_SIZE
+from utils.train_constants import VAE_Z_SIZE
 
 
 class VQVAE(nn.Module):
@@ -42,11 +42,11 @@ class VQVAE(nn.Module):
             nn.ReLU(),
         )
 
-        self.mu_encoder = nn.Linear(1000, Z_SIZE)
-        self.log_var_encoder = nn.Linear(1000, Z_SIZE)
+        self.mu_encoder = nn.Linear(1000, VAE_Z_SIZE)
+        self.log_var_encoder = nn.Linear(1000, VAE_Z_SIZE)
 
         self.linear_decoder = nn.Sequential(
-            nn.Linear(in_features=Z_SIZE, out_features=512 * 5 * 5),
+            nn.Linear(in_features=VAE_Z_SIZE, out_features=512 * 5 * 5),
             nn.BatchNorm1d(512 * 5 * 5),
             nn.ReLU(),
         )
