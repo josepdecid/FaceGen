@@ -1,5 +1,7 @@
 import os
 from glob import glob
+from copy import deepcopy
+from typing import Tuple
 
 from PIL import Image
 from torchvision import get_image_backend
@@ -56,6 +58,19 @@ class FaceDataset(VisionDataset):
 
     def __len__(self):
         return len(self.samples)
+
+    def train_test_split(self, test_ratio=0.2) -> Tuple['FaceDataset', 'FaceDataset']:
+        split_cut_point = int(test_ratio * len(self))
+
+        train_dataset = deepcopy(self)
+        train_dataset.samples = train_dataset.samples[:split_cut_point]
+        train_dataset.labels = train_dataset.labels[:split_cut_point]
+
+        test_dataset = deepcopy(self)
+        test_dataset.samples = test_dataset.samples[split_cut_point:]
+        test_dataset.labels = test_dataset.labels[split_cut_point:]
+
+        return train_dataset, test_dataset
 
     @staticmethod
     def __make_dataset(path: str):
