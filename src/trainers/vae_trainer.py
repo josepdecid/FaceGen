@@ -78,14 +78,15 @@ class VAETrainer(Trainer):
         self.model.eval()
         with torch.no_grad():
             # Generate 8 Reconstructions
-            real_samples = torch.stack([self.val_dataset[i][0] for i in range(8)])
+            real_samples = torch.stack([self.val_dataset[i][0] for i in range(8)]).to(DEVICE)
             reconstructed_samples, _, _ = self.model(real_samples)
 
             real_samples = (real_samples.cpu() + 1) / 2
             reconstructed_samples = (reconstructed_samples.cpu() + 1) / 2
 
             reconstructed_grid = vutils.make_grid(torch.cat([real_samples, reconstructed_samples]), padding=2, nrow=8)
-            self.writer.add_image(f'Reconstructed Val. Images', img_tensor=reconstructed_grid, global_step=iteration)
+            self.writer.add_image(f'Reconstructed Validation Images',
+                                  img_tensor=reconstructed_grid, global_step=iteration)
 
             # Generate 12 random samples
             latent = torch.randn(size=(12, VAE_Z_SIZE)).to(DEVICE)
@@ -93,7 +94,8 @@ class VAETrainer(Trainer):
             fake_samples = (output.cpu() + 1) / 2
 
             fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=4)
-            self.writer.add_image(f'Generated Samples', img_tensor=fake_grid, global_step=iteration)
+            self.writer.add_image(f'Generated Samples',
+                                  img_tensor=fake_grid, global_step=iteration)
 
     def _save_checkpoint(self, epoch: int):
         path = os.path.join(os.environ['CKPT_DIR'], f'VAE_{self.log_tag}')

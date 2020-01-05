@@ -3,9 +3,13 @@ from glob import glob
 from copy import deepcopy
 from typing import Tuple
 
+import torch
 from PIL import Image
 from torchvision import get_image_backend
 from torchvision.datasets import VisionDataset
+from torchvision import transforms
+
+from utils.train_constants import IMG_SIZE
 
 
 class FaceDataset(VisionDataset):
@@ -60,15 +64,20 @@ class FaceDataset(VisionDataset):
         return len(self.samples)
 
     def train_test_split(self, test_samples=100) -> Tuple['FaceDataset', 'FaceDataset']:
-        split_cut_point = len(self) - test_samples
+        indices = torch.randperm(len(self), dtype=torch.int).numpy()
 
         train_dataset = deepcopy(self)
-        train_dataset.samples = train_dataset.samples[:split_cut_point]
-        train_dataset.labels = train_dataset.labels[:split_cut_point]
+        train_dataset.samples = [self.samples[idx] for idx in indices[test_samples:]]
+        train_dataset.labels = [self.labels[idx] for idx in indices[test_samples:]]
 
         test_dataset = deepcopy(self)
-        test_dataset.samples = test_dataset.samples[split_cut_point:]
-        test_dataset.labels = test_dataset.labels[split_cut_point:]
+        test_dataset.samples = [self.samples[idx] for idx in indices[:test_samples]]
+        test_dataset.labels = [self.labels[idx] for idx in indices[:test_samples]]
+        test_dataset.transform = transforms.Compose([
+            transforms.Resize(size=(IMG_SIZE, IMG_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])
 
         return train_dataset, test_dataset
 
