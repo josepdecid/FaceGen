@@ -47,13 +47,13 @@ class VAETrainer(Trainer):
                                 global_step=iteration)
 
         # Early Stopping
-        if self.best_val_loss is None or val_loss < self.best_val_loss:
-            self.best_val_loss = val_loss
-            self.worse_iterations = 0
-        else:
-            self.worse_iterations += 1
-            if self.worse_iterations >= self.patience:
-                raise EarlyStoppingException(f'Early Stopping at Iteration {iteration} ({iteration - self.patience})')
+        # if self.best_val_loss is None or val_loss < self.best_val_loss:
+        #     self.best_val_loss = val_loss
+        #     self.worse_iterations = 0
+        # else:
+        #     self.worse_iterations += 1
+        #     if self.worse_iterations >= self.patience:
+        #         raise EarlyStoppingException(f'Early Stopping at Iteration {iteration} ({iteration - self.patience})')
 
     def _init_model(self):
         # Send network to the corresponding device (GPU or CPU)
