@@ -3,7 +3,7 @@ import glob
 import os
 from PIL import Image
 
-path = ''
+path = 'D:\\USUARIS\\gonzalorecio\\CI\\checkpoints\\GA_results_2020-01-03-21-02-49.319604_2650133507'
 fp_in = os.path.join(path, '*.png')
 fp_out = os.path.join(path, 'evolution.gif')
 

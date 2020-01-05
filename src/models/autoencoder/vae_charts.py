@@ -29,8 +29,9 @@ if __name__ == '__main__':
     models_path = sorted(glob(os.path.join(os.environ['CKPT_DIR'], 'VAE', '*.pt')))
 
     f, ax = plt.subplots(nrows=len(models_path) + 1, ncols=2 * SAMPLES,
-                         figsize=(4 * SAMPLES, 2 * len(models_path)))
-    plt.tight_layout(pad=0, h_pad=0, w_pad=0)
+                         figsize=(4 * SAMPLES, 2 * len(models_path)),
+                         gridspec_kw={'wspace': 0, 'hspace': 0})
+    # plt.tight_layout(pad=0, h_pad=0, w_pad=0)
 
     latent = torch.randn(size=(SAMPLES, VAE_Z_SIZE)).to(DEVICE)
 
@@ -45,7 +46,7 @@ if __name__ == '__main__':
         model.load_state_dict(model_weights)
 
         with torch.no_grad():
-            reconstructed_images = model(real_samples)[0].cpu().detach()
+            reconstructed_images = model(real_samples.to(DEVICE))[0].cpu().detach()
             reconstructed_images = 255 * ((reconstructed_images + 1) / 2)
             reconstructed_images = reconstructed_images.permute(0, 2, 3, 1).numpy()
 
@@ -60,5 +61,5 @@ if __name__ == '__main__':
             for j in range(SAMPLES):
                 ax[i, j + SAMPLES].imshow(fake_images[j, :, :, :].astype('uint8'))
                 ax[i, j + SAMPLES].axis('off')
-
+    plt.savefig(f'vae_plot2.png')
     plt.show()
