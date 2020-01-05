@@ -46,8 +46,16 @@
         </div>
     </form>
     <br>
-    <div class="item">
-        <img src="data:image/png;base64,{{img}}" style="width: 500px; height: auto;">
+    <div class="columns">
+        {% for i in range(it) %}
+        <div class="column">
+            {% for j in range(it) %}
+            <div>
+                <img src="data:image/png;base64,{{img[i * it + j]}}">
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
     </div>
 </div>
 </body>
