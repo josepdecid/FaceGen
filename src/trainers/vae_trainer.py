@@ -7,7 +7,7 @@ from utils.train_constants import DEVICE, Z_SIZE, BATCH_SIZE
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.autoencoder.vae_loss import MSEKLDLoss
-from trainers.trainer import Trainer
+from trainers.trainer import Trainer, EarlyStoppingException
 
 
 class VAETrainer(Trainer):
@@ -17,6 +17,9 @@ class VAETrainer(Trainer):
         self.model = model
         self.criterion = MSEKLDLoss()
         self.optim = optim.Adam(params=self.model.parameters(), lr=0.002)
+
+        self.patience = 50
+        self.best_val_loss = None
 
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor,
                    val_images: torch.Tensor = None, val_labels: torch.Tensor = None, iteration: int = 0) -> None:
@@ -40,6 +43,15 @@ class VAETrainer(Trainer):
         self.writer.add_scalars('Loss values',
                                 {'Train': loss, 'Validation': val_loss},
                                 global_step=iteration)
+
+        # Early Stopping
+        if self.best_val_loss is None or val_loss < self.best_val_loss:
+            self.best_val_loss = val_loss
+            self.worse_iterations = 0
+        else:
+            self.worse_iterations += 1
+            if self.worse_iterations >= self.patience:
+                raise EarlyStoppingException(f'Early Stopping at Iteration {iteration} ({iteration - self.patience})')
 
     def _init_model(self):
         # Send network to the corresponding device (GPU or CPU)

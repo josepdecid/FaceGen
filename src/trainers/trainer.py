@@ -31,7 +31,6 @@ class Trainer(ABC):
                 self._save_checkpoint(epoch=epoch_idx)
             except EarlyStoppingException as e:
                 print(f'Early Stopping at iteration {e.message} (epoch {epoch_idx})')
-                self._save_checkpoint(epoch=epoch_idx)
                 break
 
         self.writer.close()
