@@ -9,7 +9,7 @@ from trainers.trainer import Trainer
 
 class GANTrainer(Trainer):
     def __init__(self, G: Generator, D: Discriminator, dataset: FaceDataset, log_tag: str):
-        super().__init__(dataset, log_tag)
+        super().__init__(log_tag, dataset)
 
         self.G = G
         self.D = D

@@ -10,11 +10,11 @@ from trainers.trainer import Trainer, EarlyStoppingException
 
 class GATrainer(Trainer):
     def __init__(self, model: FaceClassifier, dataset: FaceDataset, log_tag: str):
-        super().__init__(dataset, log_tag)
+        super().__init__(log_tag, dataset)
 
         self.model = model
 
-        self.patience = 2 * len(self.loader)
+        self.patience = 2 * len(self.train_loader)
         self.worse_iterations = 0
         self.best_val_loss = None
 

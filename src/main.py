@@ -7,7 +7,7 @@ import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
-from utils.train_constants import GA_IMG_SIZE
+from utils.train_constants import GA_IMG_SIZE, BATCH_SIZE
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.evolutionary.face_classifier import FaceClassifier
@@ -34,17 +34,6 @@ def main(args):
         log_tag = ('-'.join(str(datetime.now()).split()) + f'_{manual_seed}').replace(':', '-')
         if not os.path.exists(os.environ['CKPT_DIR']):
             os.mkdir(os.environ['CKPT_DIR'])
-
-        transform = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomPerspective(distortion_scale=0.2),
-            # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
-            transforms.RandomRotation(degrees=10),
-            # transforms.Resize(size=(200, 200)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-        ])
-        # dataset = FaceDataset(os.environ['DATASET_PATH'], transform=transform)
 
         ################################
         # Using Genetic Algorithms (GAs)
@@ -117,7 +106,8 @@ def main(args):
 
         if args.model == 'VAE':
             model = VAE()
-            trainer = VAETrainer(model=model, dataset=dataset, log_tag=log_tag)
+            train_dataset, val_dataset = dataset.train_test_split(test_samples=BATCH_SIZE)
+            trainer = VAETrainer(model=model, log_tag=log_tag, train_dataset=train_dataset, val_dataset=val_dataset)
             trainer.train()
     else:
         generate_samples(model_path=args.generate[0],

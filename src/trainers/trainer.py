@@ -11,9 +11,13 @@ from utils.train_constants import *
 
 
 class Trainer(ABC):
-    def __init__(self, dataset: VisionDataset, log_tag: str):
-        self.dataset = dataset
-        self.loader = DataLoader(dataset=dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE_TRAIN)
+    def __init__(self, log_tag: str, train_dataset: VisionDataset, val_dataset: VisionDataset = None):
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
+
+        self.train_loader = DataLoader(dataset=self.train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        if self.val_dataset is not None:
+            self.val_loader = DataLoader(dataset=self.val_dataset, batch_size=len(self.val_dataset), shuffle=False)
 
         self.writer = SummaryWriter(log_dir=os.environ['LOG_DIR'])
         self.log_tag = log_tag
@@ -33,13 +37,21 @@ class Trainer(ABC):
         self.writer.close()
 
     def _run_epoch(self, epoch_idx: int):
-        num_batches = len(self.loader)
-        for batch_idx, (images, labels) in enumerate(tqdm(self.loader,
+        num_batches = len(self.train_loader)
+        for batch_idx, (images, labels) in enumerate(tqdm(self.train_loader,
                                                           total=num_batches, ncols=100,
                                                           position=0, leave=True,
                                                           desc=f'Epoch {epoch_idx:4}')):
             iteration = epoch_idx * num_batches + batch_idx
-            self._run_batch(images.to(DEVICE), labels.to(DEVICE), iteration=iteration)
+
+            if self.val_dataset:
+                val_images, val_labels = next(iter(self.val_loader))
+                self._run_batch(images.to(DEVICE), labels.to(DEVICE),
+                                val_images.to(DEVICE), val_labels.to(DEVICE),
+                                iteration=iteration)
+            else:
+                self._run_batch(images.to(DEVICE), labels.to(DEVICE),
+                                iteration=iteration)
 
             if batch_idx % 100 == 0:
                 fake_samples = self._get_result_sample()
@@ -49,7 +61,8 @@ class Trainer(ABC):
                                           img_tensor=fake_grid, global_step=iteration)
 
     @abstractmethod
-    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor, iteration: int = 0) -> None:
+    def _run_batch(self, images: torch.Tensor, labels: torch.Tensor,
+                   val_images: torch.Tensor = None, val_labels: torch.Tensor = None, iteration: int = 0) -> None:
         pass
 
     @abstractmethod

@@ -59,8 +59,8 @@ class FaceDataset(VisionDataset):
     def __len__(self):
         return len(self.samples)
 
-    def train_test_split(self, test_ratio=0.2) -> Tuple['FaceDataset', 'FaceDataset']:
-        split_cut_point = int(test_ratio * len(self))
+    def train_test_split(self, test_samples=100) -> Tuple['FaceDataset', 'FaceDataset']:
+        split_cut_point = len(self) - test_samples
 
         train_dataset = deepcopy(self)
         train_dataset.samples = train_dataset.samples[:split_cut_point]
