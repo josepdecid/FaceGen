@@ -1,13 +1,15 @@
 import os
+
 import torch
 from torch import optim, nn
-from torch.utils.data import DataLoader
 
-from utils.train_constants import DEVICE, Z_SIZE, BATCH_SIZE
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.autoencoder.vae_loss import MSEKLDLoss
 from trainers.trainer import Trainer, EarlyStoppingException
+from utils.train_constants import DEVICE, Z_SIZE
+
+import torchvision.utils as vutils
 
 
 class VAETrainer(Trainer):
@@ -72,14 +74,26 @@ class VAETrainer(Trainer):
             nn.init.normal_(m.weight.data, 1.0, 0.02)
             nn.init.constant_(m.bias.data, 0)
 
-    def _get_result_sample(self):
+    def _get_result_sample(self, iteration: int = 0):
         self.model.eval()
         with torch.no_grad():
-            latent = torch.randn(size=(9, Z_SIZE)).to(DEVICE)
-            output = self.model.decode(latent).cpu()
-            fake_images = (output + 1) / 2
-        self.model.train()
-        return fake_images
+            # Generate 8 Reconstructions
+            real_samples = torch.stack([self.val_dataset[i][0] for i in range(8)])
+            reconstructed_samples, _, _ = self.model(real_samples)
+
+            real_samples = (real_samples.cpu() + 1) / 2
+            reconstructed_samples = (reconstructed_samples.cpu() + 1) / 2
+
+            reconstructed_grid = vutils.make_grid(torch.cat([real_samples, reconstructed_samples]), padding=2, nrow=8)
+            self.writer.add_image(f'Reconstructed Val. Images', img_tensor=reconstructed_grid, global_step=iteration)
+
+            # Generate 12 random samples
+            latent = torch.randn(size=(12, Z_SIZE)).to(DEVICE)
+            output = self.model.decode(latent)
+            fake_samples = (output.cpu() + 1) / 2
+
+            fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=4)
+            self.writer.add_image(f'Generated Samples', img_tensor=fake_grid, global_step=iteration)
 
     def _save_checkpoint(self, epoch: int):
         path = os.path.join(os.environ['CKPT_DIR'], f'VAE_{self.log_tag}')

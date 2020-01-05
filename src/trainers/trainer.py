@@ -53,7 +53,7 @@ class Trainer(ABC):
                                 iteration=iteration)
 
             if batch_idx % 100 == 0:
-                fake_samples = self._get_result_sample()
+                fake_samples = self._get_result_sample(iteration)
                 if fake_samples is not None:
                     fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=3)
                     self.writer.add_image(f'Iteration {iteration} generation',
@@ -65,7 +65,7 @@ class Trainer(ABC):
         pass
 
     @abstractmethod
-    def _get_result_sample(self):
+    def _get_result_sample(self, iteration: int = 0):
         pass
 
     @abstractmethod
