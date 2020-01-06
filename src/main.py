@@ -60,7 +60,7 @@ def main(args):
                 train_dataset, val_dataset = dataset.train_test_split(test_samples=BATCH_SIZE)
 
                 model = FaceClassifier()
-                trainer = GATrainer(model, dataset, log_tag=log_tag)
+                trainer = GATrainer(model, log_tag=log_tag, train_dataset=train_dataset, val_dataset=val_dataset)
                 trainer.train()
             else:
                 # Load pretrained model from the checkpoints directory.
