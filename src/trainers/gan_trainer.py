@@ -1,10 +1,10 @@
 from torch import nn, optim
 
-from utils.train_constants import *
 from dataset.FaceDataset import FaceDataset
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
 from trainers.trainer import Trainer
+from utils.train_constants import *
 
 
 class GANTrainer(Trainer):
@@ -43,7 +43,7 @@ class GANTrainer(Trainer):
         loss_real_D = self.criterion(prediction, true_labels)
         loss_real_D.backward()
 
-        noise = torch.randn(size=(b_size, VAE_Z_SIZE, 1, 1), device=DEVICE)
+        noise = torch.randn(size=(b_size, GAN_Z_SIZE, 1, 1), device=DEVICE)
         fake_images = self.G(noise)  # + 0.05 * torch.randn(size=(b_size, 3, 200, 200), device=DEVICE)
 
         prediction = self.D(fake_images.detach()).view(-1)
@@ -88,7 +88,7 @@ class GANTrainer(Trainer):
         samples = []
         with torch.no_grad():
             for _ in range(9):
-                noise = torch.randn(size=(1, VAE_Z_SIZE), device=DEVICE)
+                noise = torch.randn(size=(1, GAN_Z_SIZE, 1, 1), device=DEVICE)
                 output = self.G(noise).squeeze()
                 fake_image = (output - output.min()) / (output.max() - output.min())
                 samples.append(fake_image)
