@@ -1,33 +1,34 @@
 from torch import nn
 
-from utils.train_constants import VAE_Z_SIZE
+from utils.train_constants import GAN_Z_SIZE
 
 
 class Generator(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.linear = nn.Linear(in_features=VAE_Z_SIZE, out_features=512 * 5 * 5)
+        z_dim = GAN_Z_SIZE
 
         self.conv_transposed = nn.Sequential(
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=4, stride=5, output_padding=1),
+            nn.ConvTranspose2d(in_channels=z_dim, out_channels=512, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(num_features=512),
+            nn.ReLU(),
+
+            nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(256),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+
+            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+
+            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.LeakyReLU(negative_slope=0.2),
-            nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+
+            nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=4, stride=2, padding=1, bias=False),
             nn.Tanh()
         )
 
-        self.batch_norms = [nn.BatchNorm2d(i ** 2) for i in range(8, 6, -1)]
-
     def forward(self, x):
-        x = self.linear(x).view(-1, 512, 5, 5)
-        x = self.conv_transposed(x)
-        return x
+        return self.conv_transposed(x)
