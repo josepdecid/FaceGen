@@ -6,7 +6,7 @@ from torch import optim, nn
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
 from models.autoencoder.vae_loss import MSEKLDLoss
-from trainers.trainer import Trainer, EarlyStoppingException
+from trainers.trainer import Trainer
 from utils.train_constants import DEVICE, VAE_Z_SIZE
 
 import torchvision.utils as vutils
@@ -42,7 +42,7 @@ class VAETrainer(Trainer):
             val_loss = self.criterion(reconstructed_images, val_images, mu, log_var)
 
         # Log loss values in Tensorboard
-        self.writer.add_scalars('Loss values',
+        self.writer.add_scalars(f'Loss values ({self.log_tag})',
                                 {'Train': loss, 'Validation': val_loss},
                                 global_step=iteration)
 
@@ -85,7 +85,7 @@ class VAETrainer(Trainer):
             reconstructed_samples = (reconstructed_samples.cpu() + 1) / 2
 
             reconstructed_grid = vutils.make_grid(torch.cat([real_samples, reconstructed_samples]), padding=2, nrow=8)
-            self.writer.add_image(f'Reconstructed Validation Images',
+            self.writer.add_image(f'Reconstructed Validation Images ({self.log_tag})',
                                   img_tensor=reconstructed_grid, global_step=iteration)
 
             # Generate 12 random samples
@@ -94,7 +94,7 @@ class VAETrainer(Trainer):
             fake_samples = (output.cpu() + 1) / 2
 
             fake_grid = vutils.make_grid(fake_samples, padding=2, nrow=4)
-            self.writer.add_image(f'Generated Samples',
+            self.writer.add_image(f'Generated Samples ({self.log_tag})',
                                   img_tensor=fake_grid, global_step=iteration)
 
     def _save_checkpoint(self, epoch: int):
