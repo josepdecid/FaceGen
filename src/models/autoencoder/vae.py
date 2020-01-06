@@ -3,7 +3,6 @@ from typing import Tuple
 import torch
 from torch import nn
 
-from utils.shape_printer import ShapePrinter
 from utils.train_constants import VAE_Z_SIZE, IMG_SIZE
 
 
@@ -53,13 +52,10 @@ class VAE(nn.Module):
         )
 
         self.conv_decoder = nn.Sequential(
-            ShapePrinter(),
 
             nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=3, stride=2),
             nn.BatchNorm2d(num_features=256),
             nn.LeakyReLU(negative_slope=0.2),
-
-            ShapePrinter(),
 
             nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2),
             nn.BatchNorm2d(num_features=128),
@@ -74,9 +70,6 @@ class VAE(nn.Module):
             nn.LeakyReLU(negative_slope=0.2),
 
             nn.ConvTranspose2d(in_channels=32, out_channels=3, kernel_size=3, stride=1),
-            nn.BatchNorm2d(num_features=3),
-            nn.LeakyReLU(negative_slope=0.2),
-
             nn.Tanh()
         )
 
