@@ -1,3 +1,5 @@
+import os
+
 from torch import nn, optim
 
 from dataset.FaceDataset import FaceDataset
@@ -96,7 +98,15 @@ class GANTrainer(Trainer):
         return torch.stack(samples, dim=0)
 
     def _save_checkpoint(self, epoch: int):
-        pass
+        path = os.path.join(os.environ['CKPT_DIR'], f'GAN_{self.log_tag}')
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        save_path = os.path.join(path, f'{epoch}_G.pt')
+        torch.save(self.G.state_dict(), save_path)
+
+        save_path = os.path.join(path, f'{epoch}_D.pt')
+        torch.save(self.D.state_dict(), save_path)
 
     @staticmethod
     def __weights_init(m):
