@@ -8,4 +8,4 @@ VAE_Z_SIZE = 150
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-IMG_SIZE = 100
+IMG_SIZE = 64
