@@ -35,6 +35,15 @@ def main(args):
         if not os.path.exists(os.environ['CKPT_DIR']):
             os.mkdir(os.environ['CKPT_DIR'])
 
+        transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomPerspective(distortion_scale=0.1),
+            transforms.RandomRotation(degrees=5),
+            transforms.Resize(size=(IMG_SIZE, IMG_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        ])
+
         ################################
         # Using Genetic Algorithms (GAs)
         ################################
@@ -44,23 +53,12 @@ def main(args):
             # We use the output of this model as the fitness function of our Genetic Algorithm.
             model: FaceClassifier = FaceClassifier()
 
-            transform = transforms.Compose([
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomPerspective(distortion_scale=0.1),
-                transforms.RandomRotation(degrees=5),
-                transforms.Resize(size=(IMG_SIZE, IMG_SIZE)),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-            ])
-            dataset = FaceDataset(root_positive=os.environ['DATASET_PATH'],
-                                  root_negative=os.environ['CIFAR_PATH'],
-                                  transform=transform)
-
             if args.pretrained is None:
-                # Train model from scratch using our main dataset as positive samples and CIFAR10 as negatives.
-                # fnf_dataset = FaceNoFaceDataset(root_positive=os.path.join(os.environ['FNF_DATASET_PATH'], 'Positive'),
-                #                                root_negative=os.path.join(os.environ['FNF_DATASET_PATH'], 'Negative'),
-                #                                transform=transform)
+                dataset = FaceDataset(root_positive=os.environ['DATASET_PATH'],
+                                      root_negative=os.environ['CIFAR_PATH'],
+                                      transform=transform)
+                train_dataset, val_dataset = dataset.train_test_split(test_samples=BATCH_SIZE)
+
                 model = FaceClassifier()
                 trainer = GATrainer(model, dataset, log_tag=log_tag)
                 trainer.train()
