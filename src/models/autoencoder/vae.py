@@ -3,6 +3,7 @@ from typing import Tuple
 import torch
 from torch import nn
 
+from utils.shape_printer import ShapePrinter
 from utils.train_constants import VAE_Z_SIZE, IMG_SIZE
 
 
@@ -11,39 +12,39 @@ class VAE(nn.Module):
         super().__init__()
 
         self.conv_encoder = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=16),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.Conv2d(16, 32, kernel_size=4, stride=5, padding=1, bias=False),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=32),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.Conv2d(256, 512, kernel_size=4, stride=1, padding=1, bias=False),
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(512),
-            nn.LeakyReLU(negative_slope=0.2)
+            nn.LeakyReLU(negative_slope=0.2),
         )
 
         self.linear_encoder = nn.Sequential(
-            nn.Linear(in_features=512, out_features=300),
-            nn.BatchNorm1d(300),
+            nn.Linear(in_features=8192, out_features=1000),
+            nn.BatchNorm1d(1000),
             nn.ReLU(),
         )
 
-        self.mu_encoder = nn.Linear(300, VAE_Z_SIZE)
-        self.log_var_encoder = nn.Linear(300, VAE_Z_SIZE)
+        self.mu_encoder = nn.Linear(1000, VAE_Z_SIZE)
+        self.log_var_encoder = nn.Linear(1000, VAE_Z_SIZE)
 
         self.linear_decoder = nn.Sequential(
             nn.Linear(in_features=VAE_Z_SIZE, out_features=512 * 5 * 5),
@@ -52,19 +53,30 @@ class VAE(nn.Module):
         )
 
         self.conv_decoder = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=4, stride=5, output_padding=1),
-            nn.BatchNorm2d(256),
+            ShapePrinter(),
+
+            nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=3, stride=2),
+            nn.BatchNorm2d(num_features=256),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(128),
+            ShapePrinter(),
+
+            nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=3, stride=2),
+            nn.BatchNorm2d(num_features=128),
             nn.LeakyReLU(negative_slope=0.2),
 
-            nn.ConvTranspose2d(in_channels=128, out_channels=3, kernel_size=4, stride=2, padding=1),
-            # nn.BatchNorm2d(64),
-            # nn.LeakyReLU(negative_slope=0.2),
+            nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, output_padding=1),
+            nn.BatchNorm2d(num_features=64),
+            nn.LeakyReLU(negative_slope=0.2),
 
-            # nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, output_padding=1),
+            nn.BatchNorm2d(num_features=32),
+            nn.LeakyReLU(negative_slope=0.2),
+
+            nn.ConvTranspose2d(in_channels=32, out_channels=3, kernel_size=3, stride=1),
+            nn.BatchNorm2d(num_features=3),
+            nn.LeakyReLU(negative_slope=0.2),
+
             nn.Tanh()
         )
 
