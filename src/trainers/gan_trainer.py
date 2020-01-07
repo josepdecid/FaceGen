@@ -17,8 +17,8 @@ class GANTrainer(Trainer):
         self.D = D
 
         self.criterion = nn.BCELoss()
-        self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.0002, betas=(0.5, 0.999))
-        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        self.optim_G = optim.Adam(params=self.G.parameters(), lr=0.0003, betas=(0.5, 0.999))
+        self.optim_D = optim.Adam(params=self.D.parameters(), lr=0.0003, betas=(0.5, 0.999))
 
     def _run_batch(self, images: torch.Tensor, labels: torch.Tensor,
                    val_images: torch.Tensor = None, val_labels: torch.Tensor = None, iteration: int = 0) -> None:

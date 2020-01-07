@@ -26,7 +26,11 @@ class Generator(nn.Module):
             nn.BatchNorm2d(64),
             nn.ReLU(),
 
-            nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+
+            nn.ConvTranspose2d(in_channels=32, out_channels=3, kernel_size=4, stride=2, padding=1, bias=False),
             nn.Tanh()
         )
 
