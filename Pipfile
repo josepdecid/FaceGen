@@ -16,6 +16,7 @@ torchsummary = "*"
 scipy = "*"
 scikit-image = "*"
 matplotlib = "==3.0.1"
+pillow = "<7"
 
 [requires]
 python_version = "3.7"
