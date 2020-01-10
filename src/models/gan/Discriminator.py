@@ -10,7 +10,7 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
 
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(64),
+            nn.BatchNorm2d(num_features=64),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
 
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=4, stride=2, padding=1, bias=False),
