@@ -68,3 +68,17 @@ extension located in the folder `./checkpoints`.
 ```bash
 (FaceGen) > python main.py --generate model_42 5
 ```
+
+## Results Samples
+
+Samples evolution along training process checkpoints from *VAE* with *UTKFace* dataset:
+![VAE Generations](samples/VAE_UTKFace_epochs_evolution.gif)
+
+Samples evolution along training process checkpoints from *VAE* with *CelebA* dataset:
+![VAE Generations](samples/VAE_CelebA_epochs_evolution.gif)
+
+Samples evolution along training process checkpoints from *GAN* with *UTKFace* dataset:
+![VAE Generations](samples/GAN_UTKFace_epochs_evolution.gif)
+
+Samples evolution along training process checkpoints from *GAN* with *CelebA* dataset:
+![VAE Generations](samples/GAN_CelebA_epochs_evolution.gif)
