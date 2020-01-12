@@ -15,12 +15,12 @@ class VAE(nn.Module):
 
             nn.Conv2d(in_channels=3, out_channels=16, kernel_size=4, stride=2, padding=1, bias=False),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # Input Shape = (-1, 16, 64, 64)
+            # Output Shape = (-1, 16, 64, 64)
 
             nn.Conv2d(in_channels=16, out_channels=32, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(num_features=32),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            # Input Shape = (-1, 32, 32, 32)
+            # Output Shape = (-1, 32, 32, 32)
 
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(num_features=64),
