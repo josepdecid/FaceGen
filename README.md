@@ -45,6 +45,24 @@ The used datasets are. Download and put them in `/datasets` folder.
 - [UTKFace](https://susanqq.github.io/UTKFace/)
 - [CIFAR10](https://www.cs.toronto.edu/~kriz/cifar.html)
 
+## Environment variables
+
+Copy the `.env_template` to a `.env` file and fill the specified environment variables required.
+
+- `CIFAR_PATH`: Path of CIFAR10 dataset (required only if training with GA).
+- `DATASET_PATH`: Path of the faces dataset (CelabA, UTKFace or any other dataset to run).
+- `LOG_DIR`: Directory to save the logs for Tensorboard visualization.
+- `CKPT_DIR`: Directory to save PyTorch models checkpoints.
+
+This would be an example of `.env`:
+
+```bash
+CIFAR_PATH=$PROJECTS/FaceGen/datasets/CIFAR
+DATASET_PATH=$PROJECTS/FaceGen/datasets/UTKFace
+LOG_DIR=$PROJECTS/FaceGen/runs
+CKPT_DIR=$PROJECTS/FaceGen/checkpoints
+```
+
 ## Train the model
 
 To train the model, simply run the following command:
@@ -66,7 +84,7 @@ using the `--cuda` flag, which also supports parallelism using multiple GPU:
 (FaceGen) > python main.py --seed 42 --cuda
 ```
 
-### Generate new samples from a pre-trained model
+## Generate new samples from a pre-trained model
 
 To generate new samples, we can use the same script, just indicating the pre-trained model
 path and the number of samples to generate using the `--generate` flag.
