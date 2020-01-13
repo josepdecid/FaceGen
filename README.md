@@ -83,6 +83,8 @@ If we have an available GPU card that supports CUDA, it will be training the mod
 
 ## Generate new samples from a pre-trained model
 
+There are 4 different pre-trained models in this [MEGA folder](https://mega.nz/#F!bNVDGIoD!y2Bcy0BKfkwkR3KqdHxi7A).
+
 To generate new samples, we can use the same script, just indicating the pre-trained model
 path and the number of samples to generate using the `--generate` flag.
 
