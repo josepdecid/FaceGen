@@ -25,7 +25,7 @@ pipenv install
 
 which will create the virtual environment and install all the requirements specified in `Pipfile`.
 
-## Usage
+### Usage
 
 All commands can be run without entering the virtual environment shell by typing
 `pipenv run` as a prefix before the `python` command. However, for simplicity,
@@ -36,7 +36,16 @@ each line of command shows its proper working:
 > pipenv shell
 (FaceGen) >
 ```
-### Train the model
+
+## Datasets
+
+The used datasets are. Download and put them in `/datasets` folder.
+
+- [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
+- [UTKFace](https://susanqq.github.io/UTKFace/)
+- [CIFAR10](https://www.cs.toronto.edu/~kriz/cifar.html)
+
+## Train the model
 
 To train the model, simply run the following command:
 
