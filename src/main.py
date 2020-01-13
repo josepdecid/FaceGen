@@ -7,6 +7,7 @@ import torch
 from dotenv import load_dotenv
 from torchvision import transforms
 
+from utils.generate_images import generate_images
 from utils.train_constants import IMG_SIZE, BATCH_SIZE
 from dataset.FaceDataset import FaceDataset
 from models.autoencoder.vae import VAE
@@ -14,16 +15,15 @@ from models.evolutionary.face_classifier import FaceClassifier
 from models.evolutionary.genetic_algorithm import GeneticAlgorithm
 from models.gan.Discriminator import Discriminator
 from models.gan.Generator import Generator
-from sampler import generate_samples
 from trainers.ga_trainer import GATrainer
 from trainers.gan_trainer import GANTrainer
 from trainers.vae_trainer import VAETrainer
 
 
 def main(args):
-    if args.generate is None:
-        load_dotenv()
+    load_dotenv()
 
+    if args.generate is None:
         # Set random seed for reproducibility
         manual_seed = random.randint(1, 1e10) if args.seed is None else args.seed
         print(f'Random Seed: {manual_seed}')
@@ -108,8 +108,8 @@ def main(args):
             trainer = VAETrainer(model=model, log_tag=log_tag, train_dataset=train_dataset, val_dataset=val_dataset)
             trainer.train()
     else:
-        generate_samples(model_path=args.generate[0],
-                         num_samples=args.generate[1])
+        model_class = Generator if args.model == 'GAN' else VAE
+        generate_images(checkpoint=args.generate[0], samples=int(args.generate[1]), ModelClass=model_class)
 
 
 if __name__ == '__main__':
@@ -124,8 +124,6 @@ if __name__ == '__main__':
                              'You also need to specify the number of samples to generate')
     parser.add_argument('--seed', type=int, required=False,
                         help='Set manual random seed for reproducibility')
-    parser.add_argument('--cuda', action='store_true', default=False,
-                        help='Train the model in a CUDA GPU (Default to CPU if no available)')
 
     print(parser.parse_args())
     main(parser.parse_args())

@@ -87,7 +87,7 @@ To generate new samples, we can use the same script, just indicating the pre-tra
 path and the number of samples to generate using the `--generate` flag.
 
 The following command generates 5 samples using the GAN model checkpoint named `model_42` which may be a file with `.pt`
-extension located in the folder `ENV['CKPT_DIR']`. 
+extension located in the folder `ENV['CKPT_DIR']`. Results will be stored in `src/generated_samples`.
 
 ```bash
 (FaceGen) > python main.py GAN --generate model_42 5
