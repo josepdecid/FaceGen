@@ -68,32 +68,29 @@ CKPT_DIR=$PROJECTS/FaceGen/checkpoints
 To train the model, simply run the following command:
 
 ```bash
-(FaceGen) > python main.py 
+(FaceGen) > python main.py {ALG}
 ```
+
+where `ALG` can take the value of `GA` for Genetic Algorithms, `VAE` for Variatonal Auto-encoders and `GAN` for Generative Adversarial Networks.
 
 If you want to ensure reproducibility, a manual `--seed` must be introduced in the command line:
 
 ```bash
-(FaceGen) > python main.py --seed 42
+(FaceGen) > python main.py GAN --seed 42
 ```
 
-If we have an available GPU card that supports CUDA, we can train the model using the GPU,
-using the `--cuda` flag, which also supports parallelism using multiple GPU:
-
-```bash
-(FaceGen) > python main.py --seed 42 --cuda
-```
+If we have an available GPU card that supports CUDA, it will be training the model using the GPU.
 
 ## Generate new samples from a pre-trained model
 
 To generate new samples, we can use the same script, just indicating the pre-trained model
 path and the number of samples to generate using the `--generate` flag.
 
-The following command generates 5 samples using the model named `model_42` which may be a file with `.ckpt`
-extension located in the folder `./checkpoints`. 
+The following command generates 5 samples using the GAN model checkpoint named `model_42` which may be a file with `.pt`
+extension located in the folder `ENV['CKPT_DIR']`. 
 
 ```bash
-(FaceGen) > python main.py --generate model_42 5
+(FaceGen) > python main.py GAN --generate model_42 5
 ```
 
 ## Results Samples
