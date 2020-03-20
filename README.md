@@ -3,7 +3,6 @@
 ##### Authors:
 - Josep de Cid Rodríguez
 - Gonzalo Recio Domènech
-- Federico Loyola
 
 ## Requirements
 
